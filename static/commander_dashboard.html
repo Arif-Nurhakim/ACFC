@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commander Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div id="topToast" class="top-toast hidden"></div>
+  <main class="container">
+    <a href="/">← Home</a>
+    <h1>Commander Dashboard</h1>
+    <p id="sessionInfo"></p>
+    <p id="stationMode"></p>
+
+    <section class="card">
+      <button id="saveWbtBtn">Save WBT</button>
+      <button id="saveRirBtn">Save RIR</button>
+      <button id="saveMcsBtn">Save MCS</button>
+      <div id="detailsContainer"></div>
+    </section>
+  </main>
+  <script src="/static/commander_dashboard.js"></script>
+</body>
+</html>

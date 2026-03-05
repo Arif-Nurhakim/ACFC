@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commander Login</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container narrow">
+    <a href="/">← Home</a>
+    <h1>Commander Login</h1>
+
+    <section class="card">
+      <label>Session Code
+        <input id="sessionCode" type="text" />
+      </label>
+      <label>Password
+        <input id="password" type="password" />
+      </label>
+      <label>Assigned Station
+        <select id="station">
+          <option value="">Select station</option>
+          <option value="WBT">WBT</option>
+          <option value="RIR">RIR</option>
+          <option value="MCS">MCS</option>
+        </select>
+      </label>
+      <button id="loginBtn">Log In</button>
+    </section>
+  </main>
+  <script src="/static/commander_login.js"></script>
+</body>
+</html>

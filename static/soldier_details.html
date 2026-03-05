@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soldier Details</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <a href="/">← Home</a>
+    <h1>Soldier Details Submission</h1>
+    <p id="sessionInfo"></p>
+
+    <section class="card">
+      <div class="grid">
+        <label>Full NRIC
+          <input id="fullNric" type="text" />
+        </label>
+        <label>Full Name as per NRIC
+          <input id="fullName" type="text" />
+        </label>
+        <label>Rank
+          <select id="rank"></select>
+        </label>
+        <label>Unit
+          <input id="unit" type="text" />
+        </label>
+        <label>Coy
+          <input id="coy" type="text" />
+        </label>
+        <label>Platoon
+          <input id="platoon" type="text" />
+        </label>
+        <label>Detail Level
+          <select id="detailLevel"></select>
+        </label>
+      </div>
+      <button id="submitBtn">Submit Details</button>
+    </section>
+
+    <section class="card hidden" id="resultCard">
+      <h2>Confirmation</h2>
+      <pre id="result"></pre>
+    </section>
+  </main>
+  <script src="/static/soldier_details.js"></script>
+</body>
+</html>

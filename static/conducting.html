@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conducting Officer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <a href="/">← Home</a>
+    <h1>Conducting Officer</h1>
+
+    <section class="card">
+      <h2>Create Session</h2>
+      <div class="grid">
+        <label>Unit
+          <input id="unit" type="text" placeholder="e.g. 1 SIR" />
+        </label>
+        <label>Coy
+          <input id="coy" type="text" placeholder="e.g. Alpha" />
+        </label>
+        <label>Test Date
+          <input id="testDate" type="date" />
+        </label>
+        <label>Session Code
+          <input id="sessionCode" type="text" />
+        </label>
+        <label>Password
+          <input id="password" type="password" />
+        </label>
+      </div>
+      <button id="createBtn">Create Session</button>
+    </section>
+
+    <section class="card">
+      <h2>Go to Session Dashboard</h2>
+      <div class="grid">
+        <label>Session Code
+          <input id="dashboardSessionCode" type="text" />
+        </label>
+        <label>Password
+          <input id="dashboardPassword" type="password" />
+        </label>
+      </div>
+      <button id="useRecentBtn" type="button">Use Recent Session</button>
+      <button id="goDashboardBtn">Go to Dashboard</button>
+    </section>
+  </main>
+  <script src="/static/conducting.js"></script>
+</body>
+</html>

@@ -1,1 +1,78 @@
-# ACFC
+# ACFC Fitness Test Submission App
+
+This app now uses a role-based process from a home page:
+- Conducting Officer creates session (Unit, Coy, Test Date, Session Code, Password)
+- Soldier enters Session Code, then submits profile details
+- Commander logs in with Session Code + Password
+- Commander selects assigned station during login (`WBT`, `RIR`, or `MCS`)
+- Commander views soldiers grouped by Detail Level in dropdown sections
+- Commander enters WBT, RIR, MCS Stage and MCS Level for each soldier row
+- Commander can save scores by station (`Save WBT`, `Save RIR`, `Save MCS`) so each station commits independently
+- Previously saved station scores remain visible to subsequent commanders/stations
+- Conducting Officer has a read-only live dashboard with all soldiers and scores
+- Export session CSV is centralized on Conducting Officer dashboard only
+- Conducting Officer dashboard auto-refreshes to reflect soldier and commander updates
+
+## Input Rules
+- Session Code and Password must both be unique across conducts; reuse prompts officer to change details.
+- Soldier Detail Level is restricted to integer values from 1 to 20 (dropdown).
+- Commander station score dropdown rules:
+   - WBT: 0 to 100 or DNF
+   - RIR: 0 to 100 or DNF
+   - MCS Level: 1 to 16 or DNF
+   - MCS Stage: constrained by selected MCS Level (or DNF)
+
+## MCS Level to Stage Mapping
+- 1 → 0
+- 2 → 0
+- 3 → 0
+- 4 → 1
+- 5 → 1-2
+- 6 → 1-2
+- 7 → 1-4
+- 8 → 1-6
+- 9 → 1-8
+- 10 → 1-8
+- 11 → 1-10
+- 12 → 1-12
+- 13 → 1-14
+- 14 → 1-12
+- 15 → 1-9
+- 16 → 1-2
+
+Existing CSV/report APIs from the earlier MVP are still available.
+
+## Stack
+- FastAPI backend
+- SQLite storage
+- Plain HTML/CSS/JS frontend
+
+## Run
+1. Create and activate a virtual environment.
+2. Install dependencies:
+   - `pip install -r requirements.txt`
+3. Start the app:
+   - `uvicorn main:app --reload`
+4. Open:
+   - `http://127.0.0.1:8000`
+
+## Pages
+- `/` → home role selection
+- `/conducting-officer` → create session
+- `/soldier/login` → session code entry
+- `/soldier/details` → soldier profile form
+- `/commander/login` → commander login
+- `/commander/dashboard` → grouped score entry
+
+## Email (optional)
+Set environment variables:
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+
+Optional base URL:
+- `APP_BASE_URL`
+
+You can copy `.env.example` values into your environment setup.
