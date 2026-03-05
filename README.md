@@ -56,6 +56,27 @@ Existing CSV/report APIs from the earlier MVP are still available.
 4. Open:
    - `http://127.0.0.1:8000`
 
+## Go Live (Public Internet)
+
+This app can be deployed publicly and mapped to a domain like `acfc.app` or `acfc.com`.
+
+### Option A: Render (quickest)
+1. Push this repo to GitHub.
+2. In Render, create a new **Web Service** from the repo.
+3. Render will detect `render.yaml` automatically.
+4. Set `APP_BASE_URL` in Render environment variables to your final HTTPS URL.
+5. Deploy.
+
+### Add custom domain (`acfc.app` / `acfc.com`)
+1. Buy domain from a registrar (Cloudflare, Namecheap, GoDaddy, etc.).
+2. In Render service settings, add custom domain (e.g. `www.acfc.app`).
+3. Add DNS records at registrar exactly as Render instructs (CNAME/A records).
+4. Wait for DNS propagation and TLS certificate issuance.
+5. Update `APP_BASE_URL` to the final domain URL (e.g. `https://www.acfc.app`).
+
+### Option B: Docker deploy (any cloud)
+- `Dockerfile` is included for deployment to platforms that support containers (Fly.io, Railway, VPS, Azure, etc.).
+
 ## Pages
 - `/` → home role selection
 - `/conducting-officer` → create session
