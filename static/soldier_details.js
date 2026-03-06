@@ -57,7 +57,7 @@ async function loadSession() {
   const data = await res.json();
 
   if (!res.ok) {
-    alert(data.detail || 'Session not found.');
+    showToast(data.detail || 'Session not found.', true);
     window.location.href = '/soldier/login';
     return;
   }
@@ -80,7 +80,7 @@ submitBtn.addEventListener('click', async () => {
   };
 
   if (!payload.full_nric || !payload.full_name || !payload.rank || !payload.unit || !payload.coy || !payload.platoon || Number.isNaN(payload.detail_level)) {
-    alert('Please complete all fields.');
+    showToast('Please complete all fields.', true);
     return;
   }
 
