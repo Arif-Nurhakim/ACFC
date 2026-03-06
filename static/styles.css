@@ -27,20 +27,7 @@ body {
 }
 
 body::before {
-  content: "";
-  position: fixed;
-  right: -24px;
-  top: 46%;
-  transform: translateY(-50%);
-  width: min(34vw, 260px);
-  aspect-ratio: 1 / 1;
-  background-image: url("/static/assets/Letter%20A.png");
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
+  content: none;
 }
 
 body.home-page::after {
@@ -387,12 +374,6 @@ summary {
     min-height: 100vh;
     margin: 0 auto;
     justify-content: center;
-  }
-
-  body::before {
-    width: min(34vw, 260px);
-    right: -24px;
-    top: 46%;
   }
 
   h1 {
