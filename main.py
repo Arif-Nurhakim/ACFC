@@ -476,15 +476,13 @@ def get_commander_session_payload(session_row: sqlite3.Row) -> dict:
 def build_commander_export_csv(export_id: str, session_row: sqlite3.Row) -> Path:
     report_file = REPORTS_DIR / f"commander_{export_id}.csv"
     fieldnames = [
-        "SESSION_CODE",
         "TEST_DATE",
+        "NRIC",
+        "PLATOON",
         "UNIT",
         "COY",
-        "PLATOON",
-        "DETAIL_LEVEL",
         "RANK",
-        "FULL_NRIC",
-        "FULL_NAME",
+        "NAME",
         "WBT",
         "RIR",
         "MCS_LEVEL",
@@ -523,15 +521,13 @@ def build_commander_export_csv(export_id: str, session_row: sqlite3.Row) -> Path
         for row in rows:
             writer.writerow(
                 {
-                    "SESSION_CODE": row["session_code"],
                     "TEST_DATE": row["test_date"],
+                    "NRIC": row["full_nric"],
+                    "PLATOON": row["platoon"],
                     "UNIT": row["unit"],
                     "COY": row["coy"],
-                    "PLATOON": row["platoon"],
-                    "DETAIL_LEVEL": row["detail_level"],
                     "RANK": row["rank"],
-                    "FULL_NRIC": row["full_nric"],
-                    "FULL_NAME": row["full_name"],
+                    "NAME": row["full_name"],
                     "WBT": row["wbt"],
                     "RIR": row["rir"],
                     "MCS_LEVEL": row["mcs_level"],
