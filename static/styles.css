@@ -16,7 +16,6 @@
 body {
   font-family: "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
-  padding-bottom: 118px;
   color: var(--text);
   background: var(--bg);
   min-height: 100vh;
@@ -46,9 +45,9 @@ body::before {
   z-index: 0;
 }
 
-body::after {
+body.home-page::after {
   content: "";
-  position: absolute;
+  position: fixed;
   right: 18px;
   bottom: 14px;
   width: 220px;
@@ -74,11 +73,11 @@ body::after {
   z-index: 1;
 }
 
-.container::after {
+body.home-page .container::after {
   content: "";
-  position: absolute;
+  position: fixed;
   left: 18px;
-  bottom: -104px;
+  bottom: 14px;
   width: 250px;
   height: 100px;
   background-image: url("/static/assets/Army_logo-Full_RGB-removebg.png");
@@ -484,17 +483,17 @@ summary {
     transform: none;
   }
 
-  body::after {
+  body.home-page::after {
     width: 150px;
     height: 60px;
     right: 10px;
     bottom: 10px;
   }
 
-  .container::after {
+  body.home-page .container::after {
     width: 170px;
     height: 68px;
     left: 10px;
-    bottom: -74px;
+    bottom: 10px;
   }
 }
