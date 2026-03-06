@@ -32,15 +32,12 @@ body::before {
   right: -24px;
   top: 46%;
   transform: translateY(-50%);
-  width: min(72vw, 820px);
+  width: min(34vw, 260px);
   aspect-ratio: 1 / 1;
   background-image: url("/static/assets/Letter%20A.png");
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  opacity: 0.06;
-  mix-blend-mode: screen;
-  filter: grayscale(1) brightness(1.15) drop-shadow(0 0 18px rgba(9, 13, 20, 0.22));
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -393,10 +390,9 @@ summary {
   }
 
   body::before {
-    width: min(95vw, 520px);
-    right: -34px;
+    width: min(45vw, 220px);
+    right: -20px;
     top: 50%;
-    opacity: 0.05;
   }
 
   h1 {
