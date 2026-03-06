@@ -42,6 +42,13 @@ h1 {
   letter-spacing: 0.2px;
 }
 
+.home-title {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
 h2 {
   margin-top: 0;
   color: #ffffff;
@@ -88,11 +95,21 @@ a:hover {
   text-decoration: none;
   color: inherit;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
+  border: 1px solid #4b5563;
 }
 
 .role-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 26px rgba(15, 23, 42, 0.12);
+}
+
+.role-card h2 {
+  color: #ffffff;
+}
+
+.role-card p {
+  color: var(--text-muted);
 }
 
 .grid {
