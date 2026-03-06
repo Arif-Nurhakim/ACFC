@@ -287,7 +287,7 @@ async function saveStationScores(station) {
     return;
   }
 
-  showToast(`${station} action is successful.`);
+  showToast('Scores recorded successfully.');
   await loadDashboard();
 }
 

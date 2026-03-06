@@ -1,15 +1,31 @@
 const sessionCode = sessionStorage.getItem('soldierSessionCode');
 const sessionInfo = document.getElementById('sessionInfo');
 const submitBtn = document.getElementById('submitBtn');
-const resultCard = document.getElementById('resultCard');
-const result = document.getElementById('result');
 const detailLevelSelect = document.getElementById('detailLevel');
 const rankSelect = document.getElementById('rank');
+const topToast = document.getElementById('topToast');
+
+let toastTimeout;
 
 const ranks = ['PTE', 'LCP', 'CPL', '3SG', '2SG', '1SG', 'SSG', 'MSG', '3WO', '2WO', '1WO', 'OCT', 'SCT', '2LT', 'LTA', 'CPT', 'MAJ', 'LTC', 'SLTC', 'COL'];
 
 if (!sessionCode) {
   window.location.href = '/soldier/login';
+}
+
+function showToast(message, isError = false) {
+  topToast.textContent = message;
+  topToast.classList.remove('hidden', 'error');
+  if (isError) {
+    topToast.classList.add('error');
+  }
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
+  toastTimeout = setTimeout(() => {
+    topToast.classList.add('hidden');
+  }, 2600);
 }
 
 function populateDetailLevels() {
@@ -76,12 +92,11 @@ submitBtn.addEventListener('click', async () => {
   const data = await res.json();
 
   if (!res.ok) {
-    alert(data.detail || 'Failed to submit soldier details.');
+    showToast(data.detail || 'Failed to submit soldier details.', true);
     return;
   }
 
-  result.textContent = JSON.stringify(data, null, 2);
-  resultCard.classList.remove('hidden');
+  showToast('Details successfully submitted.');
 });
 
 populateDetailLevels();
