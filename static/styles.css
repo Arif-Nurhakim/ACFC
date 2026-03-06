@@ -47,6 +47,8 @@ h1 {
   border: 0;
   border-radius: 0;
   padding: 0;
+  text-align: center;
+  margin-bottom: 22px;
 }
 
 h2 {
@@ -97,6 +99,11 @@ a:hover {
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   border: 1px solid #4b5563;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .role-card:hover {
@@ -106,9 +113,16 @@ a:hover {
 
 .role-card h2 {
   color: #ffffff;
+  margin: 0;
 }
 
 .role-card p {
+  color: var(--text-muted);
+}
+
+.page-description {
+  margin-top: -4px;
+  margin-bottom: 14px;
   color: var(--text-muted);
 }
 
