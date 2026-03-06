@@ -390,9 +390,9 @@ summary {
   }
 
   body::before {
-    width: min(45vw, 220px);
-    right: -20px;
-    top: 50%;
+    width: min(34vw, 260px);
+    right: -24px;
+    top: 46%;
   }
 
   h1 {
