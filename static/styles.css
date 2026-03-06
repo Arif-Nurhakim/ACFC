@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
 
 :root {
   --bg: #3f4652;
@@ -14,11 +14,14 @@
 }
 
 body {
-  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: var(--text);
   background: var(--bg);
   min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body::after {
@@ -60,14 +63,16 @@ body::after {
 }
 
 h1 {
-  font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Sora", "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
   color: #ffffff;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   border: 1px solid #4b5563;
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 16px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.4px;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
 .home-title {
@@ -77,12 +82,15 @@ h1 {
   padding: 0;
   text-align: center;
   margin-bottom: 22px;
+  font-size: clamp(2rem, 4.2vw, 3rem);
 }
 
 h2 {
-  font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Sora", "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
   margin-top: 0;
   color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.25px;
 }
 
 p,
@@ -90,6 +98,7 @@ a,
 summary,
 label {
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 a {
@@ -143,6 +152,7 @@ a:hover {
 .role-card h2 {
   color: #ffffff;
   margin: 0;
+  font-size: clamp(1.65rem, 2.4vw, 2.15rem);
 }
 
 .role-card p {
@@ -188,13 +198,14 @@ select:focus {
 }
 
 button {
-  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
   cursor: pointer;
   margin-top: 10px;
   border: 0;
   background: var(--primary);
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.25px;
   transition: background 0.12s ease, transform 0.12s ease;
 }
 
