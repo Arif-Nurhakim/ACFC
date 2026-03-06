@@ -73,6 +73,22 @@ body::after {
   z-index: 1;
 }
 
+.container::after {
+  content: "";
+  position: fixed;
+  left: 18px;
+  bottom: 14px;
+  width: 220px;
+  height: 88px;
+  background-image: url("/static/assets/Army_logo-Full_RGB-removebg.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: left bottom;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.95;
+}
+
 .container.narrow {
   max-width: 560px;
 }
@@ -186,6 +202,9 @@ a:hover {
   margin-top: -4px;
   margin-bottom: 14px;
   color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .grid {
@@ -200,6 +219,7 @@ label {
   gap: 6px;
   font-size: 1rem;
   font-weight: 500;
+  line-height: 1.35;
 }
 
 input,
@@ -467,6 +487,13 @@ summary {
     width: 150px;
     height: 60px;
     right: 10px;
+    bottom: 10px;
+  }
+
+  .container::after {
+    width: 150px;
+    height: 60px;
+    left: 10px;
     bottom: 10px;
   }
 }
