@@ -27,10 +27,10 @@ body {
   color: var(--text);
   background-color: var(--bg) !important;
   background-image:
-    linear-gradient(90deg, rgba(79, 92, 112, 0.22) 0%, rgba(63, 70, 82, 0.1) 56%, rgba(63, 70, 82, 0) 100%),
+    linear-gradient(90deg, rgba(79, 92, 112, 0.22) 0, rgba(63, 70, 82, 0.12) 340px, rgba(63, 70, 82, 0) 980px),
     repeating-linear-gradient(to right, rgba(200, 210, 224, 0.12) 0 1px, transparent 1px 34px),
     repeating-linear-gradient(to bottom, rgba(200, 210, 224, 0.12) 0 1px, transparent 1px 34px),
-    linear-gradient(90deg, rgba(63, 70, 82, 0) 0%, rgba(63, 70, 82, 0) 58%, rgba(63, 70, 82, 0.94) 100%);
+    linear-gradient(90deg, rgba(63, 70, 82, 0) 0, rgba(63, 70, 82, 0) 340px, rgba(63, 70, 82, 0.38) 700px, rgba(63, 70, 82, 0.94) 100%);
   background-size: 100% 100%, auto, auto, 100% 100%;
   background-position: 0 0, 0 0, 0 0, 0 0;
   background-repeat: no-repeat, repeat, repeat, no-repeat;
@@ -408,10 +408,10 @@ summary {
 
   body {
     background-image:
-      linear-gradient(90deg, rgba(79, 92, 112, 0.3) 0%, rgba(63, 70, 82, 0.12) 38%, rgba(63, 70, 82, 0) 72%),
+      linear-gradient(90deg, rgba(79, 92, 112, 0.3) 0, rgba(63, 70, 82, 0.14) 180px, rgba(63, 70, 82, 0) 560px),
       repeating-linear-gradient(to right, rgba(200, 210, 224, 0.16) 0 1px, transparent 1px 30px),
       repeating-linear-gradient(to bottom, rgba(200, 210, 224, 0.16) 0 1px, transparent 1px 30px),
-      linear-gradient(90deg, rgba(63, 70, 82, 0) 0%, rgba(63, 70, 82, 0.34) 35%, rgba(63, 70, 82, 0.96) 78%, rgba(63, 70, 82, 1) 100%);
+      linear-gradient(90deg, rgba(63, 70, 82, 0) 0, rgba(63, 70, 82, 0) 180px, rgba(63, 70, 82, 0.4) 360px, rgba(63, 70, 82, 0.96) 100%);
     background-size: 100% 100%, auto, auto, 100% 100%;
     background-position: 0 0, 0 0, 0 0, 0 0;
     background-repeat: no-repeat, repeat, repeat, no-repeat;
