@@ -35,19 +35,19 @@ body {
 body::before {
   content: "";
   position: fixed;
-  right: -120px;
+  right: -170px;
   top: 46%;
   transform: translateY(-50%);
-  width: min(88vw, 980px);
+  width: min(102vw, 1240px);
   aspect-ratio: 1 / 1;
   background-image: url("/static/assets/Letter%20A.png");
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  opacity: 0.16;
+  opacity: 0.2;
   filter:
-    drop-shadow(0 0 28px rgba(10, 16, 26, 0.42))
-    drop-shadow(0 0 64px rgba(10, 16, 26, 0.26));
+    drop-shadow(0 0 26px rgba(179, 195, 218, 0.34))
+    drop-shadow(0 0 70px rgba(10, 16, 26, 0.36));
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -410,6 +410,16 @@ summary {
     min-height: 100vh;
     margin: 0 auto;
     justify-content: center;
+  }
+
+  body::before {
+    width: min(150vw, 920px);
+    right: -260px;
+    top: 50%;
+    opacity: 0.22;
+    filter:
+      drop-shadow(0 0 28px rgba(189, 203, 224, 0.4))
+      drop-shadow(0 0 74px rgba(10, 16, 26, 0.4));
   }
 
   h1 {
