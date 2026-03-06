@@ -49,6 +49,14 @@ body::after {
   max-width: 560px;
 }
 
+.home-layout {
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 h1 {
   color: #ffffff;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
@@ -308,6 +316,12 @@ summary {
   .container {
     margin: 12px auto;
     padding: 0 12px;
+  }
+
+  .home-layout {
+    min-height: 100vh;
+    margin: 0 auto;
+    justify-content: center;
   }
 
   h1 {
