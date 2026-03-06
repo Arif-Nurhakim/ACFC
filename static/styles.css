@@ -27,19 +27,19 @@ body {
 }
 
 body::before {
-  content: "A";
+  content: "";
   position: fixed;
-  right: -20px;
+  right: -24px;
   top: 46%;
   transform: translateY(-50%);
-  font-family: "Barlow Condensed", "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
-  font-size: min(82vw, 980px);
-  font-weight: 800;
-  line-height: 0.8;
-  color: rgba(197, 210, 228, 0.06);
-  text-shadow:
-    0 0 26px rgba(9, 13, 20, 0.18),
-    0 0 64px rgba(9, 13, 20, 0.14);
+  width: min(82vw, 980px);
+  aspect-ratio: 1 / 1;
+  background-image: url("/static/assets/Letter%20A.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  opacity: 0.08;
+  filter: drop-shadow(0 0 22px rgba(9, 13, 20, 0.24));
   pointer-events: none;
   user-select: none;
   z-index: 0;
