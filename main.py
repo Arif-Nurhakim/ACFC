@@ -18,10 +18,19 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except Exception:  # pragma: no cover
+    psycopg = None
+    dict_row = None
+
 BASE_DIR = Path(__file__).parent
 STORAGE_DIR = BASE_DIR / "storage"
 REPORTS_DIR = STORAGE_DIR / "reports"
 DB_PATH = STORAGE_DIR / "fitness.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+USE_POSTGRES = bool(DATABASE_URL and DATABASE_URL.startswith("postgres"))
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -142,10 +151,55 @@ class EmailResult:
     message: str
 
 
-def get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+class DBConnection:
+    def __init__(self) -> None:
+        if USE_POSTGRES:
+            if psycopg is None:
+                raise RuntimeError("PostgreSQL backend requested but psycopg is not installed")
+            self._conn = psycopg.connect(DATABASE_URL, row_factory=dict_row)
+            self._is_postgres = True
+        else:
+            self._conn = sqlite3.connect(DB_PATH)
+            self._conn.row_factory = sqlite3.Row
+            self._is_postgres = False
+
+    def _adapt_query(self, query: str) -> str:
+        if not self._is_postgres:
+            return query
+        return query.replace("?", "%s")
+
+    def execute(self, query: str, params: tuple | list = ()):
+        cursor = self._conn.cursor()
+        cursor.execute(self._adapt_query(query), params)
+        return cursor
+
+    def executemany(self, query: str, params_seq: list[tuple]):
+        cursor = self._conn.cursor()
+        cursor.executemany(self._adapt_query(query), params_seq)
+        return cursor
+
+    def commit(self) -> None:
+        self._conn.commit()
+
+    def rollback(self) -> None:
+        self._conn.rollback()
+
+    def close(self) -> None:
+        self._conn.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type is None:
+            self.commit()
+        else:
+            self.rollback()
+        self.close()
+
+
+def get_conn() -> DBConnection:
+    return DBConnection()
 
 
 def init_db() -> None:
@@ -181,21 +235,22 @@ def init_db() -> None:
             )
             """
         )
-        existing_columns = {
-            row["name"]
-            for row in conn.execute("PRAGMA table_info(soldier_profiles)").fetchall()
-        }
-        if "rank" not in existing_columns:
-            conn.execute("ALTER TABLE soldier_profiles ADD COLUMN rank TEXT NOT NULL DEFAULT ''")
+        if not USE_POSTGRES:
+            existing_columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(soldier_profiles)").fetchall()
+            }
+            if "rank" not in existing_columns:
+                conn.execute("ALTER TABLE soldier_profiles ADD COLUMN rank TEXT NOT NULL DEFAULT ''")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS soldier_test_scores (
                 score_id TEXT PRIMARY KEY,
                 soldier_id TEXT NOT NULL UNIQUE,
-                wbt REAL,
-                rir REAL,
-                mcs_stage INTEGER,
-                mcs_level INTEGER,
+                wbt TEXT,
+                rir TEXT,
+                mcs_stage TEXT,
+                mcs_level TEXT,
                 updated_at TEXT NOT NULL,
                 FOREIGN KEY (soldier_id) REFERENCES soldier_profiles(soldier_id)
             )
