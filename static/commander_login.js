@@ -1,7 +1,7 @@
 const loginBtn = document.getElementById('loginBtn');
 
 loginBtn.addEventListener('click', async () => {
-  const session_code = document.getElementById('sessionCode').value.trim();
+  const session_code = document.getElementById('sessionCode').value.trim().toUpperCase();
   const password = document.getElementById('password').value;
   const station = document.getElementById('station').value;
 

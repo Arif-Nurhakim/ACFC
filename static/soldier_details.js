@@ -63,19 +63,19 @@ async function loadSession() {
   }
 
   sessionInfo.textContent = `Session ${data.session_code} | Unit: ${data.unit} | Coy: ${data.coy} | Test Date: ${data.test_date}`;
-  document.getElementById('unit').value = data.unit;
-  document.getElementById('coy').value = data.coy;
+  document.getElementById('unit').value = String(data.unit || '').toUpperCase();
+  document.getElementById('coy').value = String(data.coy || '').toUpperCase();
 }
 
 submitBtn.addEventListener('click', async () => {
   const payload = {
     session_code: sessionCode,
-    full_nric: document.getElementById('fullNric').value.trim(),
-    full_name: document.getElementById('fullName').value.trim(),
+    full_nric: document.getElementById('fullNric').value.trim().toUpperCase(),
+    full_name: document.getElementById('fullName').value.trim().toUpperCase(),
     rank: rankSelect.value,
-    unit: document.getElementById('unit').value.trim(),
-    coy: document.getElementById('coy').value.trim(),
-    platoon: document.getElementById('platoon').value.trim(),
+    unit: document.getElementById('unit').value.trim().toUpperCase(),
+    coy: document.getElementById('coy').value.trim().toUpperCase(),
+    platoon: document.getElementById('platoon').value.trim().toUpperCase(),
     detail_level: Number(detailLevelSelect.value),
   };
 

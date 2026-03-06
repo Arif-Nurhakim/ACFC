@@ -1,7 +1,7 @@
 const continueBtn = document.getElementById('continueBtn');
 
 continueBtn.addEventListener('click', async () => {
-  const sessionCode = document.getElementById('sessionCode').value.trim();
+  const sessionCode = document.getElementById('sessionCode').value.trim().toUpperCase();
   if (!sessionCode) {
     alert('Please enter Session Code.');
     return;

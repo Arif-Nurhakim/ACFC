@@ -20,10 +20,10 @@ async function validateOfficerSession(sessionCode, password) {
 
 createBtn.addEventListener('click', async () => {
   const payload = {
-    unit: document.getElementById('unit').value.trim(),
-    coy: document.getElementById('coy').value.trim(),
+    unit: document.getElementById('unit').value.trim().toUpperCase(),
+    coy: document.getElementById('coy').value.trim().toUpperCase(),
     test_date: document.getElementById('testDate').value,
-    session_code: document.getElementById('sessionCode').value.trim(),
+    session_code: document.getElementById('sessionCode').value.trim().toUpperCase(),
     password: document.getElementById('password').value,
   };
 
@@ -49,7 +49,7 @@ createBtn.addEventListener('click', async () => {
 });
 
 goDashboardBtn.addEventListener('click', async () => {
-  const sessionCode = document.getElementById('dashboardSessionCode').value.trim();
+  const sessionCode = document.getElementById('dashboardSessionCode').value.trim().toUpperCase();
   const password = document.getElementById('dashboardPassword').value;
 
   if (!sessionCode || !password) {
@@ -77,6 +77,6 @@ useRecentBtn.addEventListener('click', () => {
     return;
   }
 
-  document.getElementById('dashboardSessionCode').value = recentSessionCode;
+  document.getElementById('dashboardSessionCode').value = recentSessionCode.toUpperCase();
   document.getElementById('dashboardPassword').value = recentPassword;
 });
