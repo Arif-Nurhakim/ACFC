@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import os
+import re
 import sqlite3
 import uuid
 from dataclasses import dataclass
@@ -538,6 +539,19 @@ def build_commander_export_csv(export_id: str, session_row: sqlite3.Row) -> Path
     return report_file
 
 
+def normalize_filename_part(value: str | None) -> str:
+    normalized = re.sub(r"[^A-Z0-9-]+", "_", str(value or "").strip().upper())
+    normalized = re.sub(r"_+", "_", normalized).strip("_")
+    return normalized or "NA"
+
+
+def build_officer_export_download_name(unit: str | None, coy: str | None, test_date: str | None) -> str:
+    safe_unit = normalize_filename_part(unit)
+    safe_coy = normalize_filename_part(coy)
+    safe_date = normalize_filename_part(test_date)
+    return f"{safe_unit}_{safe_coy}_{safe_date}_ACFC.csv"
+
+
 @app.post("/api/conducting/sessions")
 def create_conducting_session(payload: ConductingSessionInput) -> JSONResponse:
     session_id = str(uuid.uuid4())
@@ -868,7 +882,12 @@ def export_officer_session(payload: CommanderLoginInput, request: Request) -> JS
 def download_officer_export(export_id: str) -> FileResponse:
     with get_conn() as conn:
         row = conn.execute(
-            "SELECT report_path FROM commander_exports WHERE export_id = ?",
+            """
+            SELECT ce.report_path, cs.unit, cs.coy, cs.test_date
+            FROM commander_exports ce
+            JOIN conducting_sessions cs ON cs.session_id = ce.session_id
+            WHERE ce.export_id = ?
+            """,
             (export_id,),
         ).fetchone()
 
@@ -879,10 +898,16 @@ def download_officer_export(export_id: str) -> FileResponse:
     if not report_path.exists():
         raise HTTPException(status_code=404, detail="Stored commander report file is missing")
 
+    download_name = build_officer_export_download_name(
+        row["unit"],
+        row["coy"],
+        row["test_date"],
+    )
+
     return FileResponse(
         report_path,
         media_type="text/csv",
-        filename=report_path.name,
+        filename=download_name,
     )
 
 
