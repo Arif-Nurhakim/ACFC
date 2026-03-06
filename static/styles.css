@@ -16,6 +16,23 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--bg);
+  min-height: 100vh;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 18px;
+  bottom: 14px;
+  width: 220px;
+  height: 88px;
+  background-image: url("/static/assets/sa_logo.svg");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: left bottom;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.95;
 }
 
 * {
@@ -365,5 +382,12 @@ summary {
     max-width: 560px;
     left: 12px;
     transform: none;
+  }
+
+  body::after {
+    width: 150px;
+    height: 60px;
+    left: 10px;
+    bottom: 10px;
   }
 }
