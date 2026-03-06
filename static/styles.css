@@ -1,21 +1,21 @@
 :root {
-  --bg: #6b7280;
-  --surface: #4b5563;
-  --surface-soft: #5b6471;
+  --bg: #3f4652;
+  --surface: #2f3642;
+  --surface-soft: #3a4250;
   --text: #ffffff;
-  --text-muted: #d1d5db;
-  --primary: #374151;
-  --primary-dark: #1f2937;
-  --border: #6b7280;
-  --border-soft: #7a8390;
-  --shadow: 0 14px 30px rgba(17, 24, 39, 0.35);
+  --text-muted: #c8ced8;
+  --primary: #2b313d;
+  --primary-dark: #1b1f27;
+  --border: #4b5563;
+  --border-soft: #5a6472;
+  --shadow: 0 14px 30px rgba(9, 13, 20, 0.45);
 }
 
 body {
   font-family: "Segoe UI", "Inter", Arial, sans-serif;
   margin: 0;
   color: var(--text);
-  background: linear-gradient(180deg, #5f6672 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, #343b47 0%, var(--bg) 100%);
 }
 
 * {
@@ -34,8 +34,8 @@ body {
 
 h1 {
   color: #ffffff;
-  background: linear-gradient(90deg, #374151 0%, #1f2937 100%);
-  border: 1px solid #6b7280;
+  background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
+  border: 1px solid #4b5563;
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 16px;
@@ -114,7 +114,7 @@ select,
 button {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #5f6775;
+  background: var(--surface-soft);
   color: var(--text);
   padding: 10px 12px;
   font-size: 14px;
@@ -124,7 +124,7 @@ input:focus,
 select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.25);
+  box-shadow: 0 0 0 3px rgba(43, 49, 61, 0.35);
 }
 
 button {
@@ -159,7 +159,7 @@ td {
 }
 
 th {
-  background: #374151;
+  background: var(--primary);
   color: #ffffff;
   font-weight: 700;
 }
@@ -207,9 +207,9 @@ summary {
   top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: #1f2937;
+  background: #1b1f27;
   color: #ffffff;
-  border: 1px solid #6b7280;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 14px;
   z-index: 1200;
@@ -241,7 +241,7 @@ summary {
 .progress-track {
   height: 8px;
   border-radius: 999px;
-  background: #6b7280;
+  background: #4b5563;
   overflow: hidden;
 }
 
