@@ -324,6 +324,18 @@ summary {
     grid-template-columns: 1fr;
   }
 
+  .role-grid {
+    max-width: 360px;
+    margin: 0 auto;
+    justify-items: center;
+  }
+
+  .role-card {
+    width: 100%;
+    min-height: 0;
+    padding: 20px 16px;
+  }
+
   input,
   select,
   button,
