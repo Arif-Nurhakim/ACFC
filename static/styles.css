@@ -203,14 +203,17 @@ label {
 }
 
 input,
-select,
-button {
+select {
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--surface-soft);
+  background: #4a5363;
   color: var(--text);
   padding: 10px 12px;
   font-size: 14px;
+}
+
+input::placeholder {
+  color: #cfd6df;
 }
 
 input:focus,
@@ -225,7 +228,7 @@ button {
   cursor: pointer;
   margin-top: 10px;
   border: 0;
-  background: var(--primary);
+  background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   color: #ffffff;
   font-weight: 700;
   letter-spacing: 0.25px;
@@ -233,7 +236,7 @@ button {
 }
 
 button:hover {
-  background: var(--primary-dark);
+  background: linear-gradient(90deg, #323947 0%, #222733 100%);
 }
 
 button:active {
@@ -285,7 +288,7 @@ summary {
 .button-link {
   display: inline-block;
   padding: 8px 12px;
-  background: var(--primary);
+  background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   color: #ffffff;
   text-decoration: none;
   border-radius: 8px;
@@ -293,7 +296,7 @@ summary {
 }
 
 .button-link:hover {
-  background: var(--primary-dark);
+  background: linear-gradient(90deg, #323947 0%, #222733 100%);
   text-decoration: none;
 }
 
