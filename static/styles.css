@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
 
 :root {
   --bg: #3f4652;
@@ -14,7 +14,7 @@
 }
 
 body {
-  font-family: "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: var(--text);
   background: var(--bg);
@@ -32,7 +32,7 @@ body::before {
   right: -20px;
   top: 46%;
   transform: translateY(-50%);
-  font-family: "Sora", "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Barlow Condensed", "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   font-size: min(82vw, 980px);
   font-weight: 800;
   line-height: 0.8;
@@ -86,7 +86,7 @@ body::after {
 }
 
 h1 {
-  font-family: "Sora", "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Barlow Condensed", "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   color: #ffffff;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   border: 1px solid #4b5563;
@@ -109,7 +109,7 @@ h1 {
 }
 
 h2 {
-  font-family: "Sora", "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Barlow Condensed", "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   margin-top: 0;
   color: #ffffff;
   font-weight: 700;
@@ -221,7 +221,7 @@ select:focus {
 }
 
 button {
-  font-family: "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   cursor: pointer;
   margin-top: 10px;
   border: 0;
