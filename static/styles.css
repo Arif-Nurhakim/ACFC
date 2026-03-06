@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
 :root {
   --bg: #3f4652;
   --surface: #2f3642;
@@ -12,7 +14,7 @@
 }
 
 body {
-  font-family: "Segoe UI", "Inter", Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: var(--text);
   background: var(--bg);
@@ -58,6 +60,7 @@ body::after {
 }
 
 h1 {
+  font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
   color: #ffffff;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   border: 1px solid #4b5563;
@@ -77,6 +80,7 @@ h1 {
 }
 
 h2 {
+  font-family: "Plus Jakarta Sans", "Inter", "Segoe UI", Arial, sans-serif;
   margin-top: 0;
   color: #ffffff;
 }
@@ -184,6 +188,7 @@ select:focus {
 }
 
 button {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   cursor: pointer;
   margin-top: 10px;
   border: 0;
