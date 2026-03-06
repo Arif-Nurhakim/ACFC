@@ -35,16 +35,19 @@ body {
 body::before {
   content: "";
   position: fixed;
-  right: -34px;
+  right: -120px;
   top: 46%;
   transform: translateY(-50%);
-  width: min(34vw, 260px);
+  width: min(88vw, 980px);
   aspect-ratio: 1 / 1;
   background-image: url("/static/assets/Letter%20A.png");
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
-  opacity: 0.12;
+  opacity: 0.16;
+  filter:
+    drop-shadow(0 0 28px rgba(10, 16, 26, 0.42))
+    drop-shadow(0 0 64px rgba(10, 16, 26, 0.26));
   pointer-events: none;
   user-select: none;
   z-index: 0;
