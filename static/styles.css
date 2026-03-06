@@ -227,7 +227,12 @@ button {
   font-family: "Barlow", "Inter", "Segoe UI", Arial, sans-serif;
   cursor: pointer;
   margin-top: 10px;
-  border: 0;
+  border: 1px solid #4b5563;
+  border-radius: 10px;
+  padding: 12px 18px;
+  min-height: 52px;
+  font-size: 1.55rem;
+  line-height: 1;
   background: linear-gradient(90deg, #2b313d 0%, #1b1f27 100%);
   color: #ffffff;
   font-weight: 700;
