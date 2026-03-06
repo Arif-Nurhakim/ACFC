@@ -15,8 +15,29 @@
 }
 
 html {
+  position: relative;
+  min-height: 100%;
   background: var(--bg) !important;
   color-scheme: light;
+}
+
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(90deg, rgba(79, 92, 112, 0.2) 0%, rgba(63, 70, 82, 0.06) 56%, rgba(63, 70, 82, 0) 100%),
+    linear-gradient(to right, rgba(200, 210, 224, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(200, 210, 224, 0.08) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    34px 34px,
+    34px 34px;
+  background-position: 0 0, 0 0, 0 0;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.52) 55%, transparent 100%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.52) 55%, transparent 100%);
 }
 
 body {
