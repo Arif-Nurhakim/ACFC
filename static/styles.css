@@ -22,14 +22,14 @@ body {
 body::after {
   content: "";
   position: fixed;
-  left: 18px;
+  right: 18px;
   bottom: 14px;
   width: 220px;
   height: 88px;
-  background-image: url("/static/assets/sa_logo.svg");
+  background-image: url("/static/assets/CESP%20Logo.png");
   background-repeat: no-repeat;
   background-size: contain;
-  background-position: left bottom;
+  background-position: right bottom;
   pointer-events: none;
   z-index: 10;
   opacity: 0.95;
@@ -387,7 +387,7 @@ summary {
   body::after {
     width: 150px;
     height: 60px;
-    left: 10px;
+    right: 10px;
     bottom: 10px;
   }
 }
