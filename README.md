@@ -42,6 +42,9 @@ This app now uses a role-based process from a home page:
 
 Existing CSV/report APIs from the earlier MVP are still available.
 
+## User Guide
+- End-user walkthrough: see [USER_GUIDE.md](USER_GUIDE.md)
+
 ## Stack
 - FastAPI backend
 - SQLite storage
