@@ -14,6 +14,15 @@
   --shadow: 0 14px 30px rgba(9, 13, 20, 0.45);
 }
 
+html,
+body,
+input,
+select,
+textarea,
+button {
+  color-scheme: light !important;
+}
+
 html {
   position: relative;
   min-height: 100%;
@@ -245,9 +254,16 @@ select {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #4a5363;
+  background-color: #4a5363 !important;
   color: var(--text);
+  color: #ffffff !important;
   padding: 10px 12px;
   font-size: 14px;
+}
+
+select option {
+  background-color: #2f3642;
+  color: #ffffff;
 }
 
 input::placeholder {
@@ -395,6 +411,29 @@ summary {
   display: block;
   overflow-x: auto;
   white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background-color: #3f4652 !important;
+    color: #ffffff !important;
+  }
+
+  .card,
+  .commander-table tr,
+  pre,
+  th,
+  td {
+    color: #ffffff;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    color-scheme: light !important;
+  }
 }
 
 @media (max-width: 768px) {
