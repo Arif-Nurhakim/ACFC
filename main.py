@@ -228,7 +228,15 @@ def init_db() -> None:
             )
             """
         )
-        if not USE_POSTGRES:
+        if USE_POSTGRES:
+            conn.execute("ALTER TABLE conducting_sessions DROP CONSTRAINT IF EXISTS conducting_sessions_session_code_key")
+            conn.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS conducting_sessions_code_password_date_uidx
+                ON conducting_sessions(session_code, password_hash, test_date)
+                """
+            )
+        else:
             create_sql_row = conn.execute(
                 "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'conducting_sessions'",
             ).fetchone()
@@ -397,6 +405,11 @@ def get_options() -> JSONResponse:
 
 def hash_password(raw_password: str) -> str:
     return hashlib.sha256(raw_password.encode("utf-8")).hexdigest()
+
+
+def is_unique_constraint_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return "unique constraint" in message or "duplicate key value violates unique constraint" in message
 
 
 MCS_STAGE_RANGE_BY_LEVEL: dict[int, tuple[int, int]] = {
@@ -803,8 +816,10 @@ async def import_officer_details(
                 """,
                 prepared_rows,
             )
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=409, detail="Import failed due to duplicate NRIC in this session")
+    except Exception as exc:
+        if is_unique_constraint_error(exc):
+            raise HTTPException(status_code=409, detail="Import failed due to duplicate NRIC in this session")
+        raise
 
     return JSONResponse(
         {
@@ -872,11 +887,13 @@ def create_conducting_session(payload: ConductingSessionInput) -> JSONResponse:
                     created_at,
                 ),
             )
-        except sqlite3.IntegrityError:
-            raise HTTPException(
-                status_code=409,
-                detail="A conduct with the same Session Code, Password, and Test Date already exists.",
-            )
+        except Exception as exc:
+            if is_unique_constraint_error(exc):
+                raise HTTPException(
+                    status_code=409,
+                    detail="A conduct with the same Session Code, Password, and Test Date already exists.",
+                )
+            raise
 
     return JSONResponse(
         {
@@ -942,8 +959,10 @@ def create_soldier_profile(payload: SoldierProfileInput) -> JSONResponse:
                     created_at,
                 ),
             )
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=409, detail="Soldier already registered for this session")
+    except Exception as exc:
+        if is_unique_constraint_error(exc):
+            raise HTTPException(status_code=409, detail="Soldier already registered for this session")
+        raise
 
     return JSONResponse(
         {
