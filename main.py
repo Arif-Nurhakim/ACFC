@@ -219,12 +219,46 @@ def init_db() -> None:
                 unit TEXT NOT NULL,
                 coy TEXT NOT NULL,
                 test_date TEXT NOT NULL,
-                session_code TEXT NOT NULL UNIQUE,
+                session_code TEXT NOT NULL,
                 password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                UNIQUE(session_code, password_hash, test_date)
             )
             """
         )
+        if not USE_POSTGRES:
+            create_sql_row = conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'conducting_sessions'",
+            ).fetchone()
+            create_sql = (create_sql_row["sql"] if create_sql_row else "") or ""
+            if "session_code TEXT NOT NULL UNIQUE" in create_sql:
+                conn.execute("PRAGMA foreign_keys=OFF")
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS conducting_sessions_new (
+                        session_id TEXT PRIMARY KEY,
+                        unit TEXT NOT NULL,
+                        coy TEXT NOT NULL,
+                        test_date TEXT NOT NULL,
+                        session_code TEXT NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        created_at TEXT NOT NULL,
+                        UNIQUE(session_code, password_hash, test_date)
+                    )
+                    """
+                )
+                conn.execute(
+                    """
+                    INSERT INTO conducting_sessions_new (
+                        session_id, unit, coy, test_date, session_code, password_hash, created_at
+                    )
+                    SELECT session_id, unit, coy, test_date, session_code, password_hash, created_at
+                    FROM conducting_sessions
+                    """
+                )
+                conn.execute("DROP TABLE conducting_sessions")
+                conn.execute("ALTER TABLE conducting_sessions_new RENAME TO conducting_sessions")
+                conn.execute("PRAGMA foreign_keys=ON")
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS soldier_profiles (
@@ -435,8 +469,27 @@ def normalize_mcs_stage_by_level(level_value: str, stage_value: str | None) -> s
 def get_session_by_code(session_code: str) -> sqlite3.Row | None:
     with get_conn() as conn:
         return conn.execute(
-            "SELECT * FROM conducting_sessions WHERE session_code = ?",
-            (session_code,),
+            """
+            SELECT * FROM conducting_sessions
+            WHERE session_code = ?
+            ORDER BY test_date DESC, created_at DESC
+            LIMIT 1
+            """,
+            (session_code.strip().upper(),),
+        ).fetchone()
+
+
+def get_session_by_credentials(session_code: str, password: str) -> sqlite3.Row | None:
+    password_hash = hash_password(password)
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM conducting_sessions
+            WHERE session_code = ? AND password_hash = ?
+            ORDER BY test_date DESC, created_at DESC
+            LIMIT 1
+            """,
+            (session_code.strip().upper(), password_hash),
         ).fetchone()
 
 
@@ -644,12 +697,9 @@ async def import_officer_details(
     session_code_value = session_code.strip().upper()
     password_value = password
 
-    session_row = get_session_by_code(session_code_value)
+    session_row = get_session_by_credentials(session_code_value, password_value)
     if not session_row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(password_value) != session_row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     if not file.filename or not file.filename.lower().endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="Upload must be an .xlsx file")
@@ -764,12 +814,9 @@ async def import_officer_details(
 
 @app.post("/api/officer/import-details/clear")
 def clear_officer_imported_details(payload: OfficerSessionAuthInput) -> JSONResponse:
-    session_row = get_session_by_code(payload.session_code)
+    session_row = get_session_by_credentials(payload.session_code, payload.password)
     if not session_row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != session_row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     with get_conn() as conn:
         deleted_profiles, deleted_scores = clear_session_profiles(conn, session_row["session_id"])
@@ -789,21 +836,20 @@ def create_conducting_session(payload: ConductingSessionInput) -> JSONResponse:
     session_id = str(uuid.uuid4())
     created_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     password_hash = hash_password(payload.password)
+    session_code_value = payload.session_code.strip().upper()
+    unit_value = payload.unit.strip().upper()
+    coy_value = payload.coy.strip().upper()
 
     with get_conn() as conn:
-        code_exists = conn.execute(
-            "SELECT 1 FROM conducting_sessions WHERE session_code = ?",
-            (payload.session_code,),
-        ).fetchone()
-        password_exists = conn.execute(
-            "SELECT 1 FROM conducting_sessions WHERE password_hash = ?",
-            (password_hash,),
+        conduct_exists = conn.execute(
+            "SELECT 1 FROM conducting_sessions WHERE session_code = ? AND password_hash = ? AND test_date = ?",
+            (session_code_value, password_hash, payload.test_date),
         ).fetchone()
 
-        if code_exists or password_exists:
+        if conduct_exists:
             raise HTTPException(
                 status_code=409,
-                detail="Session code or password is already in use. Please choose new details.",
+                detail="A conduct with the same Session Code, Password, and Test Date already exists.",
             )
 
         try:
@@ -815,10 +861,10 @@ def create_conducting_session(payload: ConductingSessionInput) -> JSONResponse:
                 """,
                 (
                     session_id,
-                    payload.unit,
-                    payload.coy,
+                    unit_value,
+                    coy_value,
                     payload.test_date,
-                    payload.session_code,
+                    session_code_value,
                     password_hash,
                     created_at,
                 ),
@@ -826,13 +872,13 @@ def create_conducting_session(payload: ConductingSessionInput) -> JSONResponse:
         except sqlite3.IntegrityError:
             raise HTTPException(
                 status_code=409,
-                detail="Session code or password is already in use. Please choose new details.",
+                detail="A conduct with the same Session Code, Password, and Test Date already exists.",
             )
 
     return JSONResponse(
         {
             "session_id": session_id,
-            "session_code": payload.session_code,
+            "session_code": session_code_value,
             "created_at": created_at,
             "message": "Session created successfully.",
         }
@@ -907,12 +953,9 @@ def create_soldier_profile(payload: SoldierProfileInput) -> JSONResponse:
 
 @app.post("/api/commander/login")
 def commander_login(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_code(payload.session_code)
+    row = get_session_by_credentials(payload.session_code, payload.password)
     if not row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     return JSONResponse(
         {
@@ -927,34 +970,25 @@ def commander_login(payload: CommanderLoginInput) -> JSONResponse:
 
 @app.post("/api/commander/session-data")
 def commander_session_data(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_code(payload.session_code)
+    row = get_session_by_credentials(payload.session_code, payload.password)
     if not row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
     return JSONResponse(get_commander_session_payload(row))
 
 
 @app.post("/api/officer/session-data")
 def officer_session_data(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_code(payload.session_code)
+    row = get_session_by_credentials(payload.session_code, payload.password)
     if not row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
     return JSONResponse(get_commander_session_payload(row))
 
 
 @app.post("/api/commander/scores")
 def save_commander_scores(payload: CommanderSaveScoresInput) -> JSONResponse:
-    row = get_session_by_code(payload.session_code)
+    row = get_session_by_credentials(payload.session_code, payload.password)
     if not row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     updated_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
@@ -1003,12 +1037,9 @@ def save_commander_scores(payload: CommanderSaveScoresInput) -> JSONResponse:
 
 @app.post("/api/commander/scores/station")
 def save_commander_station_scores(payload: CommanderStationSaveInput) -> JSONResponse:
-    row = get_session_by_code(payload.session_code)
+    row = get_session_by_credentials(payload.session_code, payload.password)
     if not row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     updated_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
@@ -1071,12 +1102,9 @@ def save_commander_station_scores(payload: CommanderStationSaveInput) -> JSONRes
 
 @app.post("/api/officer/export")
 def export_officer_session(payload: CommanderLoginInput, request: Request) -> JSONResponse:
-    session_row = get_session_by_code(payload.session_code)
+    session_row = get_session_by_credentials(payload.session_code, payload.password)
     if not session_row:
-        raise HTTPException(status_code=404, detail="Session code not found")
-
-    if hash_password(payload.password) != session_row["password_hash"]:
-        raise HTTPException(status_code=401, detail="Invalid password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
 
     export_id = str(uuid.uuid4())
     created_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"

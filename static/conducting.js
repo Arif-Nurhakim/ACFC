@@ -130,11 +130,11 @@ downloadTemplateBtn.addEventListener('click', () => {
 });
 
 clearDetailSheetBtn.addEventListener('click', async () => {
-  const sessionCode = document.getElementById('dashboardSessionCode').value.trim().toUpperCase();
-  const password = document.getElementById('dashboardPassword').value;
+  const sessionCode = document.getElementById('sessionCode').value.trim().toUpperCase();
+  const password = document.getElementById('password').value;
 
   if (!sessionCode || !password) {
-    setImportResult('Please enter Session Code and Password in dashboard section before clearing.', true);
+    setImportResult('Please enter Session Code and Password in the create section before clearing.', true);
     return;
   }
 
@@ -156,5 +156,6 @@ clearDetailSheetBtn.addEventListener('click', async () => {
   }
 
   saveOfficerSession(sessionCode, password);
+  syncSessionFields(sessionCode, password);
   setImportResult(`Cleared ${data.deleted_profiles} detail rows and ${data.deleted_scores} score rows.`, false);
 });
