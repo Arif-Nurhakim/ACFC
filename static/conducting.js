@@ -12,9 +12,19 @@ function setImportResult(message, isError = false) {
 }
 
 function syncSessionFields(sessionCode, password, testDate) {
-  document.getElementById('dashboardSessionCode').value = sessionCode;
-  document.getElementById('dashboardPassword').value = password;
-  document.getElementById('dashboardTestDate').value = testDate;
+  const dashboardSessionCode = document.getElementById('dashboardSessionCode');
+  const dashboardPassword = document.getElementById('dashboardPassword');
+  const dashboardTestDate = document.getElementById('dashboardTestDate');
+
+  if (dashboardSessionCode) {
+    dashboardSessionCode.value = sessionCode;
+  }
+  if (dashboardPassword) {
+    dashboardPassword.value = password;
+  }
+  if (dashboardTestDate) {
+    dashboardTestDate.value = testDate;
+  }
 }
 
 function saveOfficerSession(sessionCode, password, testDate) {
@@ -56,35 +66,35 @@ async function uploadDetailSheet(sessionCode, password, testDate, file) {
 }
 
 createBtn.addEventListener('click', async () => {
-  const payload = {
-    unit: document.getElementById('unit').value.trim().toUpperCase(),
-    coy: document.getElementById('coy').value.trim().toUpperCase(),
-    test_date: document.getElementById('testDate').value,
-    session_code: document.getElementById('sessionCode').value.trim().toUpperCase(),
-    password: document.getElementById('password').value,
-  };
-
-  const fileInput = document.getElementById('detailSheetFile');
-  const file = fileInput.files && fileInput.files[0];
-
-  if (!payload.unit || !payload.coy || !payload.test_date || !payload.session_code || !payload.password || !file) {
-    setImportResult('Please complete all fields and select a detail sheet (.xlsx).', true);
-    return;
-  }
-
-  const res = await fetch('/api/conducting/sessions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json();
-
-  if (!res.ok && res.status !== 409) {
-    setImportResult(data.detail || 'Failed to create session.', true);
-    return;
-  }
-
   try {
+    const payload = {
+      unit: document.getElementById('unit').value.trim().toUpperCase(),
+      coy: document.getElementById('coy').value.trim().toUpperCase(),
+      test_date: document.getElementById('testDate').value,
+      session_code: document.getElementById('sessionCode').value.trim().toUpperCase(),
+      password: document.getElementById('password').value,
+    };
+
+    const fileInput = document.getElementById('detailSheetFile');
+    const file = fileInput && fileInput.files && fileInput.files[0];
+
+    if (!payload.unit || !payload.coy || !payload.test_date || !payload.session_code || !payload.password || !file) {
+      setImportResult('Please complete all fields and select a detail sheet (.xlsx).', true);
+      return;
+    }
+
+    const createRes = await fetch('/api/conducting/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const createData = await createRes.json();
+
+    if (!createRes.ok && createRes.status !== 409) {
+      setImportResult(createData.detail || 'Failed to create session.', true);
+      return;
+    }
+
     const importResultData = await uploadDetailSheet(payload.session_code, payload.password, payload.test_date, file);
     saveOfficerSession(payload.session_code, payload.password, payload.test_date);
     syncSessionFields(payload.session_code, payload.password, payload.test_date);
