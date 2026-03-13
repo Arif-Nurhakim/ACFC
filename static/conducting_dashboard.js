@@ -9,6 +9,7 @@ const detailsContainer = document.getElementById('detailsContainer');
 
 let refreshTimer;
 let toastTimeout;
+const detailStateKey = `officerDetailOpenState:${sessionCode}:${testDate}`;
 
 if (!sessionCode || !password || !testDate) {
   window.location.href = '/conducting-officer';
@@ -31,6 +32,20 @@ function showToast(message, isError = false) {
 
 function showValue(value) {
   return value ?? '—';
+}
+
+function getDetailOpenState() {
+  try {
+    return JSON.parse(sessionStorage.getItem(detailStateKey) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setDetailOpenState(detailLevel, isOpen) {
+  const state = getDetailOpenState();
+  state[String(detailLevel)] = isOpen;
+  sessionStorage.setItem(detailStateKey, JSON.stringify(state));
 }
 
 function stationCompleted(row, station) {
@@ -84,7 +99,9 @@ function buildSummary(detailLevel, soldiers) {
 function buildRowTable(detailLevel, soldiers) {
   const wrapper = document.createElement('details');
   wrapper.className = 'detail-group';
-  wrapper.open = true;
+  const openState = getDetailOpenState();
+  const detailKey = String(detailLevel);
+  wrapper.open = openState[detailKey] !== false;
 
   const summary = document.createElement('summary');
   summary.innerHTML = buildSummary(detailLevel, soldiers);
@@ -127,6 +144,9 @@ function buildRowTable(detailLevel, soldiers) {
   });
 
   wrapper.appendChild(table);
+  wrapper.addEventListener('toggle', () => {
+    setDetailOpenState(detailLevel, wrapper.open);
+  });
   detailsContainer.appendChild(wrapper);
 }
 

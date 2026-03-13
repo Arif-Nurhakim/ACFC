@@ -10,6 +10,7 @@ const saveWbtBtn = document.getElementById('saveWbtBtn');
 const saveRirBtn = document.getElementById('saveRirBtn');
 const saveMcsBtn = document.getElementById('saveMcsBtn');
 const topToast = document.getElementById('topToast');
+const detailStateKey = `commanderDetailOpenState:${sessionCode}:${testDate}`;
 
 let toastTimeout;
 
@@ -38,6 +39,20 @@ function showToast(message, isError = false) {
   toastTimeout = setTimeout(() => {
     topToast.classList.add('hidden');
   }, 2600);
+}
+
+function getDetailOpenState() {
+  try {
+    return JSON.parse(sessionStorage.getItem(detailStateKey) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setDetailOpenState(detailLevel, isOpen) {
+  const state = getDetailOpenState();
+  state[String(detailLevel)] = isOpen;
+  sessionStorage.setItem(detailStateKey, JSON.stringify(state));
 }
 
 const mcsStageRangeByLevel = {
@@ -160,7 +175,9 @@ function renderMcsLevelCell(soldier) {
 function buildRowTable(detailLevel, soldiers) {
   const wrapper = document.createElement('details');
   wrapper.className = 'detail-group';
-  wrapper.open = true;
+  const openState = getDetailOpenState();
+  const detailKey = String(detailLevel);
+  wrapper.open = openState[detailKey] !== false;
 
   const summary = document.createElement('summary');
   summary.textContent = `Detail Level ${detailLevel} (${soldiers.length})`;
@@ -207,6 +224,9 @@ function buildRowTable(detailLevel, soldiers) {
   });
 
   wrapper.appendChild(table);
+  wrapper.addEventListener('toggle', () => {
+    setDetailOpenState(detailLevel, wrapper.open);
+  });
   detailsContainer.appendChild(wrapper);
 }
 
