@@ -11,6 +11,18 @@ function setImportResult(message, isError = false) {
   importResult.style.borderColor = isError ? '#ef4444' : '';
 }
 
+async function parseApiResponse(res) {
+  const text = await res.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { detail: text };
+  }
+}
+
 function syncSessionFields(sessionCode, password, testDate) {
   const dashboardSessionCode = document.getElementById('dashboardSessionCode');
   const dashboardPassword = document.getElementById('dashboardPassword');
@@ -56,7 +68,7 @@ async function uploadDetailSheet(sessionCode, password, testDate, file) {
     method: 'POST',
     body: formData,
   });
-  const data = await res.json();
+  const data = await parseApiResponse(res);
 
   if (!res.ok) {
     throw new Error(data.detail || 'Import failed.');
@@ -88,7 +100,7 @@ createBtn.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const createData = await createRes.json();
+    const createData = await parseApiResponse(createRes);
 
     if (!createRes.ok && createRes.status !== 409) {
       setImportResult(createData.detail || 'Failed to create session.', true);
@@ -117,7 +129,7 @@ goDashboardBtn.addEventListener('click', async () => {
   }
 
   const res = await validateOfficerSession(sessionCode, password, testDate);
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   if (!res.ok) {
     alert(data.detail || 'Unable to open dashboard.');
     return;
@@ -165,7 +177,7 @@ clearDetailSheetBtn.addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate }),
   });
-  const data = await res.json();
+  const data = await parseApiResponse(res);
 
   if (!res.ok) {
     setImportResult(data.detail || 'Failed to clear imported details.', true);
