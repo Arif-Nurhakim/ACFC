@@ -177,7 +177,7 @@ function buildRowTable(detailLevel, soldiers) {
   wrapper.className = 'detail-group';
   const openState = getDetailOpenState();
   const detailKey = String(detailLevel);
-  wrapper.open = openState[detailKey] !== false;
+  wrapper.open = openState[detailKey] === true;
 
   const summary = document.createElement('summary');
   summary.textContent = `Detail Level ${detailLevel} (${soldiers.length})`;
