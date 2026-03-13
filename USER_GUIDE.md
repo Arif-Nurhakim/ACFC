@@ -7,7 +7,6 @@ This guide is for day-to-day users of the ACFC app.
 2. On the home page, choose your role:
    - Conducting Officer
    - Commanders
-   - Soldiers
 
 ---
 
@@ -25,11 +24,23 @@ Use this role to create a session and monitor progress.
 3. Click **Create**.
 
 ### B. Share login details
-Share the **Session Code** with:
-- Soldiers (to enter details)
-- Commanders (to log in with password)
+1. Click **Download Template** to get the Excel format.
+2. Fill in required columns:
+   - NRIC
+   - NAME
+   - RANK
+   - UNIT
+   - COY
+   - PLATOON
+   - DETAIL_LEVEL
+3. In **Import Detail Sheet (Excel)**, enter Session Code + Password and upload `.xlsx`.
+4. Confirm import success count.
 
-Share the **Password** with commanders only.
+If correction is needed:
+1. Click **Clear Imported Details**.
+2. Upload corrected file again.
+
+Share **Session Code** and **Password** with commanders after import is ready.
 
 ### C. View live dashboard and export
 1. Go to Conducting Officer Dashboard.
@@ -38,29 +49,7 @@ Share the **Password** with commanders only.
 
 ---
 
-## 3) Soldier flow
-Use this role to submit individual soldier details.
-
-1. Click **Soldiers**.
-2. Enter **Session Code** and continue.
-3. Complete all required fields:
-   - NRIC
-   - Full Name
-   - Rank
-   - Unit
-   - Coy
-   - Platoon
-   - Detail Level
-4. Click **Submit**.
-5. Confirm the success message appears.
-
-Notes:
-- Text-entry fields are auto-normalized to uppercase.
-- Detail Level is selected from a dropdown.
-
----
-
-## 4) Commander flow
+## 3) Commander flow
 Use this role to enter station scores.
 
 1. Click **Commanders**.
@@ -124,6 +113,6 @@ Filename format:
 
 ## 7) Best practice on operation day
 1. Conducting Officer creates one session and confirms dashboard access.
-2. Soldiers complete details first.
+2. Conducting Officer imports validated detail sheet and checks row count.
 3. Commanders enter station scores in parallel by assigned station.
 4. Conducting Officer verifies progress bars and exports final CSV.

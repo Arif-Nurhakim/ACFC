@@ -1,6 +1,23 @@
 const createBtn = document.getElementById('createBtn');
 const goDashboardBtn = document.getElementById('goDashboardBtn');
 const useRecentBtn = document.getElementById('useRecentBtn');
+const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+const uploadDetailSheetBtn = document.getElementById('uploadDetailSheetBtn');
+const clearDetailSheetBtn = document.getElementById('clearDetailSheetBtn');
+const importResult = document.getElementById('importResult');
+
+function setImportResult(message, isError = false) {
+  importResult.textContent = message;
+  importResult.classList.remove('hidden');
+  importResult.style.borderColor = isError ? '#ef4444' : '';
+}
+
+function syncSessionFields(sessionCode, password) {
+  document.getElementById('dashboardSessionCode').value = sessionCode;
+  document.getElementById('dashboardPassword').value = password;
+  document.getElementById('importSessionCode').value = sessionCode;
+  document.getElementById('importPassword').value = password;
+}
 
 function saveOfficerSession(sessionCode, password) {
   sessionStorage.setItem('officerSessionCode', sessionCode);
@@ -45,7 +62,8 @@ createBtn.addEventListener('click', async () => {
   }
 
   saveOfficerSession(payload.session_code, payload.password);
-  window.location.href = '/conducting-officer/dashboard';
+  syncSessionFields(payload.session_code, payload.password);
+  setImportResult('Session created successfully. Next: upload your detail sheet.', false);
 });
 
 goDashboardBtn.addEventListener('click', async () => {
@@ -77,6 +95,72 @@ useRecentBtn.addEventListener('click', () => {
     return;
   }
 
-  document.getElementById('dashboardSessionCode').value = recentSessionCode.toUpperCase();
-  document.getElementById('dashboardPassword').value = recentPassword;
+  syncSessionFields(recentSessionCode.toUpperCase(), recentPassword);
+});
+
+downloadTemplateBtn.addEventListener('click', () => {
+  window.open('/api/officer/import-template', '_blank', 'noopener,noreferrer');
+});
+
+uploadDetailSheetBtn.addEventListener('click', async () => {
+  const sessionCode = document.getElementById('importSessionCode').value.trim().toUpperCase();
+  const password = document.getElementById('importPassword').value;
+  const fileInput = document.getElementById('detailSheetFile');
+  const file = fileInput.files && fileInput.files[0];
+
+  if (!sessionCode || !password || !file) {
+    setImportResult('Please enter Session Code, Password, and select an .xlsx file.', true);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('session_code', sessionCode);
+  formData.append('password', password);
+  formData.append('file', file);
+
+  const res = await fetch('/api/officer/import-details', {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    setImportResult(data.detail || 'Import failed.', true);
+    return;
+  }
+
+  saveOfficerSession(sessionCode, password);
+  syncSessionFields(sessionCode, password);
+  fileInput.value = '';
+  setImportResult(`Imported ${data.imported_count} rows successfully.`, false);
+});
+
+clearDetailSheetBtn.addEventListener('click', async () => {
+  const sessionCode = document.getElementById('importSessionCode').value.trim().toUpperCase();
+  const password = document.getElementById('importPassword').value;
+
+  if (!sessionCode || !password) {
+    setImportResult('Please enter Session Code and Password before clearing.', true);
+    return;
+  }
+
+  const confirmed = window.confirm('Clear imported details and related station scores for this session?');
+  if (!confirmed) {
+    return;
+  }
+
+  const res = await fetch('/api/officer/import-details/clear', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_code: sessionCode, password }),
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    setImportResult(data.detail || 'Failed to clear imported details.', true);
+    return;
+  }
+
+  saveOfficerSession(sessionCode, password);
+  setImportResult(`Cleared ${data.deleted_profiles} detail rows and ${data.deleted_scores} score rows.`, false);
 });

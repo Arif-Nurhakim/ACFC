@@ -2,7 +2,7 @@
 
 This app now uses a role-based process from a home page:
 - Conducting Officer creates session (Unit, Coy, Test Date, Session Code, Password)
-- Soldier enters Session Code, then submits profile details
+- Conducting Officer uploads pre-templated detail sheet (.xlsx)
 - Commander logs in with Session Code + Password
 - Commander selects assigned station during login (`WBT`, `RIR`, or `MCS`)
 - Commander views soldiers grouped by Detail Level in dropdown sections
@@ -12,10 +12,12 @@ This app now uses a role-based process from a home page:
 - Conducting Officer has a read-only live dashboard with all soldiers and scores
 - Export session CSV is centralized on Conducting Officer dashboard only
 - Conducting Officer dashboard auto-refreshes to reflect soldier and commander updates
+- Reupload approach is clean replace: clear imported details first, then upload corrected sheet
 
 ## Input Rules
 - Session Code and Password must both be unique across conducts; reuse prompts officer to change details.
-- Soldier Detail Level is restricted to integer values from 1 to 20 (dropdown).
+- Imported Detail Level is restricted to integer values from 1 to 20.
+- Required detail-sheet columns: `NRIC`, `NAME`, `RANK`, `UNIT`, `COY`, `PLATOON`, `DETAIL_LEVEL`
 - Commander station score dropdown rules:
    - WBT: 0 to 100 or DNF
    - RIR: 0 to 100 or DNF
@@ -83,8 +85,7 @@ This app can be deployed publicly and mapped to a domain like `acfc.app` or `acf
 ## Pages
 - `/` → home role selection
 - `/conducting-officer` → create session
-- `/soldier/login` → session code entry
-- `/soldier/details` → soldier profile form
+- `/api/officer/import-template` → download detail-sheet template (.xlsx)
 - `/commander/login` → commander login
 - `/commander/dashboard` → grouped score entry
 

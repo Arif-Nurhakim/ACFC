@@ -359,6 +359,17 @@ summary {
   text-decoration: none;
 }
 
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.action-row button {
+  margin-top: 0;
+}
+
 .top-toast {
   position: fixed;
   top: 14px;

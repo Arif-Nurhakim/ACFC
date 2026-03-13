@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import os
 import re
 import sqlite3
@@ -13,11 +14,12 @@ from pathlib import Path
 import smtplib
 from typing import Annotated, Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from openpyxl import Workbook, load_workbook
 
 try:
     import psycopg
@@ -144,6 +146,11 @@ class CommanderStationScoreRow(BaseModel):
 class CommanderStationSaveInput(CommanderLoginInput):
     station: Literal["WBT", "RIR", "MCS"]
     scores: Annotated[list[CommanderStationScoreRow], Field(min_length=1)]
+
+
+class OfficerSessionAuthInput(BaseModel):
+    session_code: str = Field(min_length=1)
+    password: str = Field(min_length=1)
 
 
 @dataclass
@@ -550,6 +557,231 @@ def build_officer_export_download_name(unit: str | None, coy: str | None, test_d
     safe_coy = normalize_filename_part(coy)
     safe_date = normalize_filename_part(test_date)
     return f"{safe_unit}_{safe_coy}_{safe_date}_ACFC.csv"
+
+
+DETAIL_IMPORT_REQUIRED_HEADERS = {
+    "NRIC",
+    "NAME",
+    "RANK",
+    "UNIT",
+    "COY",
+    "PLATOON",
+    "DETAIL_LEVEL",
+}
+
+
+def normalize_import_header(value: str | None) -> str:
+    cleaned = str(value or "").strip().upper()
+    cleaned = re.sub(r"[^A-Z0-9]+", "_", cleaned)
+    cleaned = re.sub(r"_+", "_", cleaned).strip("_")
+    if cleaned == "FULL_NRIC":
+        return "NRIC"
+    if cleaned == "FULL_NAME":
+        return "NAME"
+    return cleaned
+
+
+def parse_detail_level(value: str, row_number: int) -> str:
+    cleaned = value.strip()
+    if not cleaned.isdigit():
+        raise HTTPException(status_code=400, detail=f"Row {row_number}: DETAIL_LEVEL must be an integer between 1 and 20")
+    parsed = int(cleaned)
+    if parsed < 1 or parsed > 20:
+        raise HTTPException(status_code=400, detail=f"Row {row_number}: DETAIL_LEVEL must be between 1 and 20")
+    return str(parsed)
+
+
+def clear_session_profiles(conn: DBConnection, session_id: str) -> tuple[int, int]:
+    soldier_rows = conn.execute(
+        "SELECT soldier_id FROM soldier_profiles WHERE session_id = ?",
+        (session_id,),
+    ).fetchall()
+    soldier_ids = [row["soldier_id"] for row in soldier_rows]
+
+    deleted_scores = 0
+    if soldier_ids:
+        placeholders = ",".join("?" for _ in soldier_ids)
+        deleted_scores = conn.execute(
+            f"DELETE FROM soldier_test_scores WHERE soldier_id IN ({placeholders})",
+            tuple(soldier_ids),
+        ).rowcount
+
+    deleted_profiles = conn.execute(
+        "DELETE FROM soldier_profiles WHERE session_id = ?",
+        (session_id,),
+    ).rowcount
+
+    return deleted_profiles or 0, deleted_scores or 0
+
+
+@app.get("/api/officer/import-template")
+def download_detail_import_template() -> StreamingResponse:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "DETAIL_SHEET"
+
+    headers = ["NRIC", "NAME", "RANK", "UNIT", "COY", "PLATOON", "DETAIL_LEVEL"]
+    sheet.append(headers)
+    sheet.append(["S1234567A", "TAN AH KOW", "CPL", "1 SIR", "ALPHA", "1", "4"])
+
+    content = io.BytesIO()
+    workbook.save(content)
+    content.seek(0)
+
+    return StreamingResponse(
+        content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=ACFC_DETAIL_IMPORT_TEMPLATE.xlsx"},
+    )
+
+
+@app.post("/api/officer/import-details")
+async def import_officer_details(
+    session_code: str = Form(...),
+    password: str = Form(...),
+    file: UploadFile = File(...),
+) -> JSONResponse:
+    session_code_value = session_code.strip().upper()
+    password_value = password
+
+    session_row = get_session_by_code(session_code_value)
+    if not session_row:
+        raise HTTPException(status_code=404, detail="Session code not found")
+
+    if hash_password(password_value) != session_row["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    if not file.filename or not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="Upload must be an .xlsx file")
+
+    with get_conn() as conn:
+        existing_count = conn.execute(
+            "SELECT COUNT(1) AS total FROM soldier_profiles WHERE session_id = ?",
+            (session_row["session_id"],),
+        ).fetchone()["total"]
+        if int(existing_count or 0) > 0:
+            raise HTTPException(
+                status_code=409,
+                detail="This session already has imported details. Clear imported details before uploading a new file.",
+            )
+
+    file_bytes = await file.read()
+    try:
+        workbook = load_workbook(io.BytesIO(file_bytes), data_only=True)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Unable to read Excel file. Please use the provided template.")
+
+    sheet = workbook.active
+    rows = list(sheet.iter_rows(values_only=True))
+    if not rows:
+        raise HTTPException(status_code=400, detail="Excel file is empty")
+
+    raw_headers = rows[0]
+    normalized_headers = [normalize_import_header(h) for h in raw_headers]
+    missing_headers = [header for header in DETAIL_IMPORT_REQUIRED_HEADERS if header not in normalized_headers]
+    if missing_headers:
+        raise HTTPException(status_code=400, detail=f"Missing required columns: {', '.join(sorted(missing_headers))}")
+
+    index_by_header = {header: idx for idx, header in enumerate(normalized_headers)}
+
+    prepared_rows: list[tuple] = []
+    seen_nric: set[str] = set()
+    created_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+
+    for index, excel_row in enumerate(rows[1:], start=2):
+        if excel_row is None:
+            continue
+
+        def value_for(header: str) -> str:
+            position = index_by_header[header]
+            if position >= len(excel_row):
+                return ""
+            return str(excel_row[position] or "").strip().upper()
+
+        nric = value_for("NRIC")
+        name = value_for("NAME")
+        rank = value_for("RANK")
+        unit = value_for("UNIT")
+        coy = value_for("COY")
+        platoon = value_for("PLATOON")
+        detail_level_raw = value_for("DETAIL_LEVEL")
+
+        if not any([nric, name, rank, unit, coy, platoon, detail_level_raw]):
+            continue
+
+        if not nric or not name or not rank or not unit or not coy or not platoon or not detail_level_raw:
+            raise HTTPException(status_code=400, detail=f"Row {index}: all required columns must be filled")
+
+        if rank not in ALLOWED_RANKS:
+            raise HTTPException(status_code=400, detail=f"Row {index}: RANK '{rank}' is invalid")
+
+        detail_level = parse_detail_level(detail_level_raw, index)
+
+        if nric in seen_nric:
+            raise HTTPException(status_code=400, detail=f"Row {index}: duplicate NRIC '{nric}' in file")
+        seen_nric.add(nric)
+
+        prepared_rows.append(
+            (
+                str(uuid.uuid4()),
+                session_row["session_id"],
+                nric,
+                name,
+                rank,
+                unit,
+                coy,
+                platoon,
+                detail_level,
+                created_at,
+            )
+        )
+
+    if not prepared_rows:
+        raise HTTPException(status_code=400, detail="No valid data rows found in uploaded file")
+
+    try:
+        with get_conn() as conn:
+            conn.executemany(
+                """
+                INSERT INTO soldier_profiles (
+                    soldier_id, session_id, full_nric, full_name, rank, unit,
+                    coy, platoon, detail_level, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                prepared_rows,
+            )
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=409, detail="Import failed due to duplicate NRIC in this session")
+
+    return JSONResponse(
+        {
+            "session_code": session_code_value,
+            "imported_count": len(prepared_rows),
+            "message": "Detail sheet imported successfully.",
+        }
+    )
+
+
+@app.post("/api/officer/import-details/clear")
+def clear_officer_imported_details(payload: OfficerSessionAuthInput) -> JSONResponse:
+    session_row = get_session_by_code(payload.session_code)
+    if not session_row:
+        raise HTTPException(status_code=404, detail="Session code not found")
+
+    if hash_password(payload.password) != session_row["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    with get_conn() as conn:
+        deleted_profiles, deleted_scores = clear_session_profiles(conn, session_row["session_id"])
+
+    return JSONResponse(
+        {
+            "session_code": session_row["session_code"],
+            "deleted_profiles": deleted_profiles,
+            "deleted_scores": deleted_scores,
+            "message": "Imported detail data cleared. You can upload a new file now.",
+        }
+    )
 
 
 @app.post("/api/conducting/sessions")
