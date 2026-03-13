@@ -121,6 +121,7 @@ ALLOWED_RANKS = {
 class CommanderLoginInput(BaseModel):
     session_code: str = Field(min_length=1)
     password: str = Field(min_length=1)
+    test_date: str = Field(min_length=1)
 
 
 class CommanderScoreRow(BaseModel):
@@ -151,6 +152,7 @@ class CommanderStationSaveInput(CommanderLoginInput):
 class OfficerSessionAuthInput(BaseModel):
     session_code: str = Field(min_length=1)
     password: str = Field(min_length=1)
+    test_date: str = Field(min_length=1)
 
 
 @dataclass
@@ -479,17 +481,16 @@ def get_session_by_code(session_code: str) -> sqlite3.Row | None:
         ).fetchone()
 
 
-def get_session_by_credentials(session_code: str, password: str) -> sqlite3.Row | None:
+def get_session_by_credentials(session_code: str, password: str, test_date: str) -> sqlite3.Row | None:
     password_hash = hash_password(password)
     with get_conn() as conn:
         return conn.execute(
             """
             SELECT * FROM conducting_sessions
-            WHERE session_code = ? AND password_hash = ?
-            ORDER BY test_date DESC, created_at DESC
+            WHERE session_code = ? AND password_hash = ? AND test_date = ?
             LIMIT 1
             """,
-            (session_code.strip().upper(), password_hash),
+            (session_code.strip().upper(), password_hash, test_date.strip()),
         ).fetchone()
 
 
@@ -692,14 +693,16 @@ def download_detail_import_template() -> StreamingResponse:
 async def import_officer_details(
     session_code: str = Form(...),
     password: str = Form(...),
+    test_date: str = Form(...),
     file: UploadFile = File(...),
 ) -> JSONResponse:
     session_code_value = session_code.strip().upper()
     password_value = password
+    test_date_value = test_date.strip()
 
-    session_row = get_session_by_credentials(session_code_value, password_value)
+    session_row = get_session_by_credentials(session_code_value, password_value, test_date_value)
     if not session_row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     if not file.filename or not file.filename.lower().endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="Upload must be an .xlsx file")
@@ -814,9 +817,9 @@ async def import_officer_details(
 
 @app.post("/api/officer/import-details/clear")
 def clear_officer_imported_details(payload: OfficerSessionAuthInput) -> JSONResponse:
-    session_row = get_session_by_credentials(payload.session_code, payload.password)
+    session_row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not session_row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     with get_conn() as conn:
         deleted_profiles, deleted_scores = clear_session_profiles(conn, session_row["session_id"])
@@ -953,9 +956,9 @@ def create_soldier_profile(payload: SoldierProfileInput) -> JSONResponse:
 
 @app.post("/api/commander/login")
 def commander_login(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_credentials(payload.session_code, payload.password)
+    row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     return JSONResponse(
         {
@@ -970,25 +973,25 @@ def commander_login(payload: CommanderLoginInput) -> JSONResponse:
 
 @app.post("/api/commander/session-data")
 def commander_session_data(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_credentials(payload.session_code, payload.password)
+    row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
     return JSONResponse(get_commander_session_payload(row))
 
 
 @app.post("/api/officer/session-data")
 def officer_session_data(payload: CommanderLoginInput) -> JSONResponse:
-    row = get_session_by_credentials(payload.session_code, payload.password)
+    row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
     return JSONResponse(get_commander_session_payload(row))
 
 
 @app.post("/api/commander/scores")
 def save_commander_scores(payload: CommanderSaveScoresInput) -> JSONResponse:
-    row = get_session_by_credentials(payload.session_code, payload.password)
+    row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     updated_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
@@ -1037,9 +1040,9 @@ def save_commander_scores(payload: CommanderSaveScoresInput) -> JSONResponse:
 
 @app.post("/api/commander/scores/station")
 def save_commander_station_scores(payload: CommanderStationSaveInput) -> JSONResponse:
-    row = get_session_by_credentials(payload.session_code, payload.password)
+    row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     updated_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
@@ -1102,9 +1105,9 @@ def save_commander_station_scores(payload: CommanderStationSaveInput) -> JSONRes
 
 @app.post("/api/officer/export")
 def export_officer_session(payload: CommanderLoginInput, request: Request) -> JSONResponse:
-    session_row = get_session_by_credentials(payload.session_code, payload.password)
+    session_row = get_session_by_credentials(payload.session_code, payload.password, payload.test_date)
     if not session_row:
-        raise HTTPException(status_code=401, detail="Invalid Session Code or Password")
+        raise HTTPException(status_code=401, detail="Invalid Session Code, Password, or Test Date")
 
     export_id = str(uuid.uuid4())
     created_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"

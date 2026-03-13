@@ -1,5 +1,6 @@
 const sessionCode = sessionStorage.getItem('commanderSessionCode');
 const password = sessionStorage.getItem('commanderPassword');
+const testDate = sessionStorage.getItem('commanderTestDate');
 const assignedStation = sessionStorage.getItem('commanderStation');
 
 const detailsContainer = document.getElementById('detailsContainer');
@@ -12,7 +13,7 @@ const topToast = document.getElementById('topToast');
 
 let toastTimeout;
 
-if (!sessionCode || !password || !assignedStation) {
+if (!sessionCode || !password || !testDate || !assignedStation) {
   window.location.href = '/commander/login';
 }
 
@@ -213,7 +214,7 @@ async function loadDashboard() {
   const res = await fetch('/api/commander/session-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_code: sessionCode, password }),
+    body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate }),
   });
 
   const data = await res.json();
@@ -278,7 +279,7 @@ async function saveStationScores(station) {
   const res = await fetch('/api/commander/scores/station', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_code: sessionCode, password, station, scores }),
+    body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate, station, scores }),
   });
 
   const data = await res.json();

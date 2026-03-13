@@ -7,14 +7,14 @@
   <meta name="supported-color-schemes" content="light" />
   <meta name="theme-color" content="#3f4652" />
   <title>Commander Login</title>
-  <link rel="stylesheet" href="/static/styles.css?v=20260313b" />
+  <link rel="stylesheet" href="/static/styles.css?v=20260313d" />
   <script>document.documentElement.style.colorScheme='only light';document.documentElement.setAttribute('data-theme','light');</script>
 </head>
 <body>
   <main class="container narrow">
     <a href="/">← Home</a>
     <h1>Commander Login</h1>
-    <p class="page-description">Log in with Session Code and Password, then enter scores by detail level.</p>
+    <p class="page-description">Log in with Session Code, Password, and Test Date, then enter scores by detail level.</p>
 
     <section class="card">
       <label>Session Code
@@ -22,6 +22,9 @@
       </label>
       <label>Password
         <input id="password" type="password" />
+      </label>
+      <label>Test Date
+        <input id="testDate" type="date" />
       </label>
       <label>Assigned Station
         <select id="station">
@@ -34,7 +37,7 @@
       <button id="loginBtn">Log In</button>
     </section>
   </main>
-  <script src="/static/uppercase.js?v=20260306m"></script>
-  <script src="/static/commander_login.js?v=20260306m"></script>
+  <script src="/static/uppercase.js?v=20260313d"></script>
+  <script src="/static/commander_login.js?v=20260313d"></script>
 </body>
 </html>

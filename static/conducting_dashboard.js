@@ -1,5 +1,6 @@
 const sessionCode = sessionStorage.getItem('officerSessionCode') || localStorage.getItem('officerSessionCode');
 const password = sessionStorage.getItem('officerPassword') || localStorage.getItem('officerPassword');
+const testDate = sessionStorage.getItem('officerTestDate') || localStorage.getItem('officerTestDate');
 
 const topToast = document.getElementById('topToast');
 const sessionInfo = document.getElementById('sessionInfo');
@@ -9,7 +10,7 @@ const detailsContainer = document.getElementById('detailsContainer');
 let refreshTimer;
 let toastTimeout;
 
-if (!sessionCode || !password) {
+if (!sessionCode || !password || !testDate) {
   window.location.href = '/conducting-officer';
 }
 
@@ -133,7 +134,7 @@ async function loadDashboard() {
   const res = await fetch('/api/officer/session-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_code: sessionCode, password }),
+    body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate }),
   });
 
   const data = await res.json();
@@ -154,7 +155,7 @@ exportBtn.addEventListener('click', async () => {
   const res = await fetch('/api/officer/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_code: sessionCode, password }),
+    body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate }),
   });
 
   const data = await res.json();

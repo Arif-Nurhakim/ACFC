@@ -3,17 +3,18 @@ const loginBtn = document.getElementById('loginBtn');
 loginBtn.addEventListener('click', async () => {
   const session_code = document.getElementById('sessionCode').value.trim().toUpperCase();
   const password = document.getElementById('password').value;
+  const test_date = document.getElementById('testDate').value;
   const station = document.getElementById('station').value;
 
-  if (!session_code || !password || !station) {
-    alert('Please enter Session Code, Password, and Assigned Station.');
+  if (!session_code || !password || !test_date || !station) {
+    alert('Please enter Session Code, Password, Test Date, and Assigned Station.');
     return;
   }
 
   const res = await fetch('/api/commander/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_code, password }),
+    body: JSON.stringify({ session_code, password, test_date }),
   });
 
   const data = await res.json();
@@ -24,6 +25,7 @@ loginBtn.addEventListener('click', async () => {
 
   sessionStorage.setItem('commanderSessionCode', session_code);
   sessionStorage.setItem('commanderPassword', password);
+  sessionStorage.setItem('commanderTestDate', test_date);
   sessionStorage.setItem('commanderStation', station);
   window.location.href = '/commander/dashboard';
 });
