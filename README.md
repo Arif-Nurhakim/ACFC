@@ -1,8 +1,7 @@
 # ACFC Fitness Test Submission App
 
 This app now uses a role-based process from a home page:
-- Conducting Officer creates session (Unit, Coy, Test Date, Session Code, Password)
-- Conducting Officer uploads pre-templated detail sheet (.xlsx)
+- Conducting Officer creates session and uploads pre-templated detail sheet (.xlsx) in one step
 - Commander logs in with Session Code + Password
 - Commander selects assigned station during login (`WBT`, `RIR`, or `MCS`)
 - Commander views soldiers grouped by Detail Level in dropdown sections
@@ -12,7 +11,7 @@ This app now uses a role-based process from a home page:
 - Conducting Officer has a read-only live dashboard with all soldiers and scores
 - Export session CSV is centralized on Conducting Officer dashboard only
 - Conducting Officer dashboard auto-refreshes to reflect soldier and commander updates
-- Reupload approach is clean replace: clear imported details first, then upload corrected sheet
+- Reupload approach is clean replace: clear imported details first, then upload corrected sheet with the same session credentials
 
 ## Input Rules
 - Session Code and Password must both be unique across conducts; reuse prompts officer to change details.

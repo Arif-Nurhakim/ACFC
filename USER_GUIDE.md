@@ -21,7 +21,8 @@ Use this role to create a session and monitor progress.
    - Test Date
    - Session Code
    - Password
-3. Click **Create**.
+   - Detail Sheet (.xlsx)
+3. Click **Create Session & Upload**.
 
 ### B. Share login details
 1. Click **Download Template** to get the Excel format.
@@ -33,8 +34,8 @@ Use this role to create a session and monitor progress.
    - COY
    - PLATOON
    - DETAIL_LEVEL
-3. In **Import Detail Sheet (Excel)**, enter Session Code + Password and upload `.xlsx`.
-4. Confirm import success count.
+3. Upload this file during session creation (same screen).
+4. Confirm import success and open dashboard.
 
 If correction is needed:
 1. Click **Clear Imported Details**.

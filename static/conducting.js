@@ -2,7 +2,6 @@ const createBtn = document.getElementById('createBtn');
 const goDashboardBtn = document.getElementById('goDashboardBtn');
 const useRecentBtn = document.getElementById('useRecentBtn');
 const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
-const uploadDetailSheetBtn = document.getElementById('uploadDetailSheetBtn');
 const clearDetailSheetBtn = document.getElementById('clearDetailSheetBtn');
 const importResult = document.getElementById('importResult');
 
@@ -15,8 +14,6 @@ function setImportResult(message, isError = false) {
 function syncSessionFields(sessionCode, password) {
   document.getElementById('dashboardSessionCode').value = sessionCode;
   document.getElementById('dashboardPassword').value = password;
-  document.getElementById('importSessionCode').value = sessionCode;
-  document.getElementById('importPassword').value = password;
 }
 
 function saveOfficerSession(sessionCode, password) {
@@ -35,6 +32,25 @@ async function validateOfficerSession(sessionCode, password) {
   return res;
 }
 
+async function uploadDetailSheet(sessionCode, password, file) {
+  const formData = new FormData();
+  formData.append('session_code', sessionCode);
+  formData.append('password', password);
+  formData.append('file', file);
+
+  const res = await fetch('/api/officer/import-details', {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.detail || 'Import failed.');
+  }
+
+  return data;
+}
+
 createBtn.addEventListener('click', async () => {
   const payload = {
     unit: document.getElementById('unit').value.trim().toUpperCase(),
@@ -44,8 +60,11 @@ createBtn.addEventListener('click', async () => {
     password: document.getElementById('password').value,
   };
 
-  if (!payload.unit || !payload.coy || !payload.test_date || !payload.session_code || !payload.password) {
-    alert('Please complete all fields.');
+  const fileInput = document.getElementById('detailSheetFile');
+  const file = fileInput.files && fileInput.files[0];
+
+  if (!payload.unit || !payload.coy || !payload.test_date || !payload.session_code || !payload.password || !file) {
+    setImportResult('Please complete all fields and select a detail sheet (.xlsx).', true);
     return;
   }
 
@@ -54,16 +73,23 @@ createBtn.addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-
   const data = await res.json();
-  if (!res.ok) {
-    alert(data.detail || 'Failed to create session.');
+
+  if (!res.ok && res.status !== 409) {
+    setImportResult(data.detail || 'Failed to create session.', true);
     return;
   }
 
-  saveOfficerSession(payload.session_code, payload.password);
-  syncSessionFields(payload.session_code, payload.password);
-  setImportResult('Session created successfully. Next: upload your detail sheet.', false);
+  try {
+    const importResultData = await uploadDetailSheet(payload.session_code, payload.password, file);
+    saveOfficerSession(payload.session_code, payload.password);
+    syncSessionFields(payload.session_code, payload.password);
+    fileInput.value = '';
+    setImportResult(`Imported ${importResultData.imported_count} rows successfully.`, false);
+    window.location.href = '/conducting-officer/dashboard';
+  } catch (error) {
+    setImportResult(error.message || 'Import failed.', true);
+  }
 });
 
 goDashboardBtn.addEventListener('click', async () => {
@@ -96,51 +122,19 @@ useRecentBtn.addEventListener('click', () => {
   }
 
   syncSessionFields(recentSessionCode.toUpperCase(), recentPassword);
+  setImportResult('Recent session loaded. You can upload a corrected file or open dashboard.', false);
 });
 
 downloadTemplateBtn.addEventListener('click', () => {
   window.open('/api/officer/import-template', '_blank', 'noopener,noreferrer');
 });
 
-uploadDetailSheetBtn.addEventListener('click', async () => {
-  const sessionCode = document.getElementById('importSessionCode').value.trim().toUpperCase();
-  const password = document.getElementById('importPassword').value;
-  const fileInput = document.getElementById('detailSheetFile');
-  const file = fileInput.files && fileInput.files[0];
-
-  if (!sessionCode || !password || !file) {
-    setImportResult('Please enter Session Code, Password, and select an .xlsx file.', true);
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append('session_code', sessionCode);
-  formData.append('password', password);
-  formData.append('file', file);
-
-  const res = await fetch('/api/officer/import-details', {
-    method: 'POST',
-    body: formData,
-  });
-  const data = await res.json();
-
-  if (!res.ok) {
-    setImportResult(data.detail || 'Import failed.', true);
-    return;
-  }
-
-  saveOfficerSession(sessionCode, password);
-  syncSessionFields(sessionCode, password);
-  fileInput.value = '';
-  setImportResult(`Imported ${data.imported_count} rows successfully.`, false);
-});
-
 clearDetailSheetBtn.addEventListener('click', async () => {
-  const sessionCode = document.getElementById('importSessionCode').value.trim().toUpperCase();
-  const password = document.getElementById('importPassword').value;
+  const sessionCode = document.getElementById('dashboardSessionCode').value.trim().toUpperCase();
+  const password = document.getElementById('dashboardPassword').value;
 
   if (!sessionCode || !password) {
-    setImportResult('Please enter Session Code and Password before clearing.', true);
+    setImportResult('Please enter Session Code and Password in dashboard section before clearing.', true);
     return;
   }
 
