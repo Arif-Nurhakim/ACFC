@@ -11,8 +11,11 @@ const saveRirBtn = document.getElementById('saveRirBtn');
 const saveMcsBtn = document.getElementById('saveMcsBtn');
 const topToast = document.getElementById('topToast');
 const detailStateKey = `commanderDetailOpenState:${sessionCode}:${testDate}`;
+const draftStateKey = `commanderOfflineDraft:${sessionCode}:${testDate}:${assignedStation}`;
+const saveQueueKey = `commanderSaveQueue:${sessionCode}:${testDate}:${assignedStation}`;
 
 let toastTimeout;
+let draftScores = {};
 
 if (!sessionCode || !password || !testDate || !assignedStation) {
   window.location.href = '/commander/login';
@@ -53,6 +56,127 @@ function setDetailOpenState(detailLevel, isOpen) {
   const state = getDetailOpenState();
   state[String(detailLevel)] = isOpen;
   sessionStorage.setItem(detailStateKey, JSON.stringify(state));
+}
+
+function parseStoredJson(key, fallback) {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(key) || JSON.stringify(fallback));
+    if (Array.isArray(fallback)) {
+      return Array.isArray(value) ? value : fallback;
+    }
+    return value && typeof value === 'object' ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getDraftScores() {
+  return parseStoredJson(draftStateKey, {});
+}
+
+function saveDraftScores(state) {
+  sessionStorage.setItem(draftStateKey, JSON.stringify(state));
+}
+
+function updateDraftScore(soldierId, patch) {
+  const state = getDraftScores();
+  const existing = state[soldierId] || {};
+  state[soldierId] = { ...existing, ...patch };
+  saveDraftScores(state);
+  draftScores = state;
+}
+
+function clearDraftScoresForSavedRows(scores) {
+  if (!scores.length) {
+    return;
+  }
+  const state = getDraftScores();
+  scores.forEach((score) => {
+    delete state[score.soldier_id];
+  });
+  saveDraftScores(state);
+  draftScores = state;
+}
+
+function getSaveQueue() {
+  return parseStoredJson(saveQueueKey, []);
+}
+
+function setSaveQueue(queue) {
+  sessionStorage.setItem(saveQueueKey, JSON.stringify(queue));
+}
+
+function enqueueScoresForSync(scores) {
+  const queue = getSaveQueue();
+  queue.push({
+    station: assignedStation,
+    queued_at: new Date().toISOString(),
+    scores,
+  });
+  setSaveQueue(queue);
+}
+
+async function parseApiResponse(res) {
+  const text = await res.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { detail: text };
+  }
+}
+
+async function syncQueuedSaves() {
+  if (!navigator.onLine) {
+    return;
+  }
+
+  let remaining = getSaveQueue();
+  if (!remaining.length) {
+    return;
+  }
+
+  let syncedAny = false;
+
+  while (remaining.length) {
+    const item = remaining[0];
+    try {
+      const res = await fetch('/api/commander/scores/station', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_code: sessionCode,
+          password,
+          test_date: testDate,
+          station: item.station,
+          scores: item.scores,
+        }),
+      });
+
+      const data = await parseApiResponse(res);
+      if (!res.ok) {
+        if (res.status < 500) {
+          showToast(data.detail || 'Queued scores need manual review before sync.', true);
+        }
+        break;
+      }
+
+      clearDraftScoresForSavedRows(item.scores);
+      remaining = remaining.slice(1);
+      syncedAny = true;
+    } catch {
+      break;
+    }
+  }
+
+  setSaveQueue(remaining);
+
+  if (syncedAny) {
+    showToast('Queued offline scores synced.');
+    await loadDashboard();
+  }
 }
 
 const mcsStageRangeByLevel = {
@@ -136,7 +260,8 @@ function wireMcsDependency(row, soldier) {
     return;
   }
 
-  setStageSelectOptions(stageSelect, levelSelect.value, soldier.mcs_stage);
+  const draftStage = draftScores[soldier.soldier_id]?.mcs_stage;
+  setStageSelectOptions(stageSelect, levelSelect.value, draftStage ?? soldier.mcs_stage);
 
   levelSelect.addEventListener('change', () => {
     const previousStage = stageSelect.value;
@@ -146,14 +271,16 @@ function wireMcsDependency(row, soldier) {
 
 function renderWbtCell(soldier) {
   if (assignedStation === 'WBT') {
-    return buildSelectHtml('wbt-input', 0, 100, soldier.wbt);
+    const draftValue = draftScores[soldier.soldier_id]?.wbt;
+    return buildSelectHtml('wbt-input', 0, 100, draftValue ?? soldier.wbt);
   }
   return `<span>${showValue(soldier.wbt)}</span>`;
 }
 
 function renderRirCell(soldier) {
   if (assignedStation === 'RIR') {
-    return buildSelectHtml('rir-input', 0, 100, soldier.rir);
+    const draftValue = draftScores[soldier.soldier_id]?.rir;
+    return buildSelectHtml('rir-input', 0, 100, draftValue ?? soldier.rir);
   }
   return `<span>${showValue(soldier.rir)}</span>`;
 }
@@ -167,9 +294,59 @@ function renderMcsStageCell(soldier) {
 
 function renderMcsLevelCell(soldier) {
   if (assignedStation === 'MCS') {
-    return buildSelectHtml('mcs-level-input', 1, 16, soldier.mcs_level);
+    const draftValue = draftScores[soldier.soldier_id]?.mcs_level;
+    return buildSelectHtml('mcs-level-input', 1, 16, draftValue ?? soldier.mcs_level);
   }
   return `<span>${showValue(soldier.mcs_level)}</span>`;
+}
+
+function wireDraftTracking(row, soldierId) {
+  if (assignedStation === 'WBT') {
+    const wbtInput = row.querySelector('.wbt-input');
+    if (wbtInput) {
+      wbtInput.addEventListener('change', () => {
+        if (!wbtInput.value) {
+          return;
+        }
+        updateDraftScore(soldierId, { wbt: wbtInput.value });
+      });
+    }
+  }
+
+  if (assignedStation === 'RIR') {
+    const rirInput = row.querySelector('.rir-input');
+    if (rirInput) {
+      rirInput.addEventListener('change', () => {
+        if (!rirInput.value) {
+          return;
+        }
+        updateDraftScore(soldierId, { rir: rirInput.value });
+      });
+    }
+  }
+
+  if (assignedStation === 'MCS') {
+    const mcsStageInput = row.querySelector('.mcs-stage-input');
+    const mcsLevelInput = row.querySelector('.mcs-level-input');
+
+    if (mcsLevelInput) {
+      mcsLevelInput.addEventListener('change', () => {
+        if (!mcsLevelInput.value) {
+          return;
+        }
+        updateDraftScore(soldierId, { mcs_level: mcsLevelInput.value });
+      });
+    }
+
+    if (mcsStageInput) {
+      mcsStageInput.addEventListener('change', () => {
+        if (!mcsStageInput.value) {
+          return;
+        }
+        updateDraftScore(soldierId, { mcs_stage: mcsStageInput.value });
+      });
+    }
+  }
 }
 
 function buildRowTable(detailLevel, soldiers) {
@@ -221,6 +398,7 @@ function buildRowTable(detailLevel, soldiers) {
     if (assignedStation === 'MCS') {
       wireMcsDependency(row, soldier);
     }
+    wireDraftTracking(row, soldier.soldier_id);
   });
 
   wrapper.appendChild(table);
@@ -231,13 +409,15 @@ function buildRowTable(detailLevel, soldiers) {
 }
 
 async function loadDashboard() {
+  draftScores = getDraftScores();
+
   const res = await fetch('/api/commander/session-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate }),
   });
 
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   if (!res.ok) {
     alert(data.detail || 'Unable to load dashboard.');
     window.location.href = '/commander/login';
@@ -302,12 +482,18 @@ async function saveStationScores(station) {
     body: JSON.stringify({ session_code: sessionCode, password, test_date: testDate, station, scores }),
   });
 
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   if (!res.ok) {
+    if (!navigator.onLine || res.status >= 500) {
+      enqueueScoresForSync(scores);
+      showToast(`Offline-safe: ${station} scores queued for auto-sync.`, true);
+      return;
+    }
     showToast(data.detail || `Failed to save ${station}.`, true);
     return;
   }
 
+  clearDraftScoresForSavedRows(scores);
   showToast('Scores recorded successfully.');
   await loadDashboard();
 }
@@ -316,4 +502,10 @@ saveWbtBtn.addEventListener('click', () => saveStationScores('WBT'));
 saveRirBtn.addEventListener('click', () => saveStationScores('RIR'));
 saveMcsBtn.addEventListener('click', () => saveStationScores('MCS'));
 
+window.addEventListener('online', () => {
+  showToast('Back online. Syncing queued scores...');
+  syncQueuedSaves();
+});
+
 loadDashboard();
+syncQueuedSaves();
